@@ -13,6 +13,7 @@ java {
 
 dependencies {
     compileOnly("io.netty:netty-buffer:4.2.18.Final")
+    compileOnly("org.jspecify:jspecify:1.0.0")
 }
 
 val sourcesJar by tasks.registering(Jar::class) {

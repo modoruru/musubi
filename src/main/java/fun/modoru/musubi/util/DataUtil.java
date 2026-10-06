@@ -3,7 +3,9 @@ package fun.modoru.musubi.util;
 import fun.modoru.musubi.data.Reader;
 import fun.modoru.musubi.data.Writer;
 import io.netty.buffer.ByteBuf;
+import org.jspecify.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -11,15 +13,21 @@ public final class DataUtil {
 
     private DataUtil() {}
 
+    public static <E1, E2> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, E1 e1, E2 e2) {
+        return e2Writer.write(e1Writer.write(output, e1), e2);
+    }
+
+    public static <E1, E2, E3> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, E1 e1, E2 e2, E3 e3) {
+        return e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3);
+    }
+
     public static UUID readUuid(ByteBuf input) {
         long most = input.readLong(), least = input.readLong();
         return new UUID(most, least);
     }
 
     public static ByteBuf writeUuid(ByteBuf output, UUID uuid) {
-        output.writeLong(uuid.getMostSignificantBits());
-        output.writeLong(uuid.getLeastSignificantBits());
-        return output;
+        return output.writeLong(uuid.getMostSignificantBits()).writeLong(uuid.getLeastSignificantBits());
     }
 
     public static <Element> Element[] readArray(ByteBuf input, Function<Integer, Element[]> arrayCreator, Reader<Element> elementReader) {
@@ -34,9 +42,13 @@ public final class DataUtil {
     public static <Element> ByteBuf writeArray(ByteBuf output, Writer<Element> elementWriter, Element[] array) {
         VarIntUtil.write(output, array.length);
         for (Element element : array) {
-            elementWriter.write(output, element);
+            output = elementWriter.write(output, element);
         }
         return output;
+    }
+
+    public static <Element> Writer<Element[]> arrayWriter(Writer<Element> elementWriter) {
+        return (output, element) -> writeArray(output, elementWriter, element);
     }
 
     public static int[] readVarIntArray(ByteBuf input) {
@@ -54,6 +66,34 @@ public final class DataUtil {
             VarIntUtil.write(output, element);
         }
         return output;
+    }
+
+    public static <Element> @Nullable Element readNullable(ByteBuf input, Reader<Element> elementReader) {
+        if(!input.readBoolean()) return null;
+        return elementReader.read(input);
+    }
+
+    public static <Element> ByteBuf writeNullable(ByteBuf output, Writer<Element> elementWriter, @Nullable Element element) {
+        output = output.writeBoolean(element != null);
+        if(element != null) output = elementWriter.write(output, element);
+
+        return output;
+    }
+
+    public static <Element> Writer<Element> nullableWriter(Writer<Element> nonNullWriter) {
+        return (output, element) -> writeNullable(output, nonNullWriter, element);
+    }
+
+    public static String readUtf8(ByteBuf input) {
+        int size = input.readInt();
+        byte[] utf8 = new byte[size];
+        input.readBytes(utf8);
+        return new String(utf8, StandardCharsets.UTF_8);
+    }
+
+    public static ByteBuf writeUtf8(ByteBuf output, String utf8) {
+        byte[] rawUtf8 = utf8.getBytes(StandardCharsets.UTF_8);
+        return output.writeInt(rawUtf8.length).writeBytes(rawUtf8);
     }
 
 }

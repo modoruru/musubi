@@ -1,6 +1,7 @@
 package fun.modoru.musubi;
 
 import fun.modoru.musubi.packet.*;
+import fun.modoru.musubi.util.DataUtil;
 import fun.modoru.musubi.util.Pair;
 import io.netty.buffer.ByteBuf;
 
@@ -74,8 +75,11 @@ public final class Protocol {
         int id = findDefinitionId(definition);
         if(id == -1) throw new NoSuchElementException("This packet definition is not registered in that protocol");
 
-        output.writeInt(id);
-        definition.write(output, instance);
+        DataUtil.writeSequentially(
+                output,
+                ByteBuf::writeInt, definition,
+                id, instance
+        );
     }
 
     public void tryToHandle(ByteBuf input) {

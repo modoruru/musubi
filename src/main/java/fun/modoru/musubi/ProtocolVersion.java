@@ -13,11 +13,12 @@ public record ProtocolVersion(int[] versions, Flow[] flows) {
                     DataUtil.readVarIntArray(input),
                     DataUtil.readArray(input, Flow[]::new, input1 -> Flow.values()[VarIntUtil.read(input1)])
             ),
-            (output, element) -> {
-                DataUtil.writeVarIntArray(output, element.versions);
-                DataUtil.writeArray(output, (output1, element1) -> VarIntUtil.write(output1, element1.ordinal()), element.flows());
-                return output;
-            }
+            (output, element) -> DataUtil.writeSequentially(
+                    output,
+                    DataUtil::writeVarIntArray,
+                    DataUtil.arrayWriter((source, flow) -> VarIntUtil.write(source, flow.ordinal())),
+                    element.versions, element.flows
+            )
     );
 
 }
