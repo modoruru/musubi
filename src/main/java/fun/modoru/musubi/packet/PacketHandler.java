@@ -1,6 +1,6 @@
 package fun.modoru.musubi.packet;
 
-import io.netty.channel.ChannelHandlerContext;
+import fun.modoru.musubi.peer.MusubiConnection;
 
 @FunctionalInterface
 public interface PacketHandler<Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> {
@@ -9,6 +9,6 @@ public interface PacketHandler<Instance extends Record & PacketInstance, Definit
         return (_, _, _) -> {};
     }
 
-    void handle(ChannelHandlerContext channelHandlerContext, Definition definition, Instance packet) throws PacketProcessingException;
+    void handle(MusubiConnection connection, Definition definition, Instance packet) throws PacketProcessingException;
 
 }

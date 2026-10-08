@@ -1,4 +1,4 @@
-package fun.modoru.musubi.server;
+package fun.modoru.musubi.peer;
 
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.packet.PacketDefinition;

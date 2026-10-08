@@ -1,6 +1,7 @@
 package fun.modoru.musubi.server;
 
 import fun.modoru.musubi.Protocol;
+import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.quic.QuicStreamChannel;
 import org.jspecify.annotations.Nullable;

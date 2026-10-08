@@ -50,7 +50,7 @@ extensions.configure<PublishingExtension> {
             artifact(sourcesJar.get())
 
             group = project.group.toString();
-            artifactId = "network-protocol"
+            artifactId = "musubi"
             version = project.version.toString()
         }
     }

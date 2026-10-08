@@ -2,12 +2,12 @@ package fun.modoru.musubi;
 
 import fun.modoru.musubi.packet.*;
 import fun.modoru.musubi.packets.*;
+import fun.modoru.musubi.peer.MusubiConnection;
 import fun.modoru.musubi.util.DataUtil;
 import fun.modoru.musubi.util.Pair;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -137,13 +137,13 @@ public final class Protocol {
         return new ReadPacket(id, definition, definition.read(input));
     }
 
-    public void tryToHandle(ChannelHandlerContext channelHandlerContext, ByteBuf input) {
-        tryToHandle(channelHandlerContext, readPacket(input));
+    public void tryToHandle(MusubiConnection connection, ByteBuf input) {
+        tryToHandle(connection, readPacket(input));
     }
 
-    public void tryToHandle(ChannelHandlerContext channelHandlerContext, ReadPacket readPacket) {
+    public void tryToHandle(MusubiConnection connection, ReadPacket readPacket) {
         try {
-            handlers[readPacket.packetId].handle(channelHandlerContext, cast(readPacket.definition), cast(readPacket.packetInstance));
+            handlers[readPacket.packetId].handle(connection, cast(readPacket.definition), cast(readPacket.packetInstance));
         }
         catch (Throwable throwable) {
             throw new PacketProcessingException(throwable);

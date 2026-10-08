@@ -1,6 +1,6 @@
 package fun.modoru.musubi;
 
-import fun.modoru.musubi.server.MusubiConnection;
+import fun.modoru.musubi.peer.MusubiConnection;
 import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface

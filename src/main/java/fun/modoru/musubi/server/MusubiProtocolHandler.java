@@ -3,6 +3,7 @@ package fun.modoru.musubi.server;
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.ProtocolVersion;
 import fun.modoru.musubi.packets.*;
+import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -44,7 +45,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         // Client's authorized and sent us its protocol so we can transfer packet to packet's handler safely
         if(authorizationState && agreedOnProtocol) {
             try {
-                connection.protocol().tryToHandle(ctx, readPacket);
+                connection.protocol().tryToHandle(connection, readPacket);
             }
             catch (Throwable throwable) {
                 connection.close();
