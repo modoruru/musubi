@@ -1,4 +1,4 @@
-package fun.modoru.musubi.socket;
+package fun.modoru.musubi.server;
 
 import fun.modoru.musubi.InterruptableRunnable;
 import fun.modoru.musubi.Protocol;
