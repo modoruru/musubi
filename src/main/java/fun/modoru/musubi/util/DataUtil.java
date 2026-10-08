@@ -22,6 +22,48 @@ public final class DataUtil {
         return e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3);
     }
 
+    public static boolean hasContinuationBit(byte in) {
+        return (in & 128) == 128;
+    }
+
+    public static int readVarInt(ByteBuf input) {
+        int out = 0;
+        int bytes = 0;
+
+        byte in;
+        do {
+            in = input.readByte();
+            out |= (in & 127) << (bytes++ * 7);
+            if (bytes > 5) {
+                throw new RuntimeException("VarInt too big");
+            }
+        }
+        while(hasContinuationBit(in));
+
+        return out;
+    }
+
+    public static ByteBuf writeVarInt(ByteBuf output, int value) {
+        if ((value & -128) == 0)
+            return output.writeByte(value);
+
+        if ((value & -16384) == 0) {
+            int s = (value & 127 | 128) << 8 | value >>> 7;
+            return output.writeShort(s);
+        }
+
+        return writeVarIntSlow(output, value);
+    }
+
+    public static ByteBuf writeVarIntSlow(ByteBuf output, int value) {
+        while((value & -128) != 0) {
+            output.writeByte(value & 127 | 128);
+            value >>>= 7;
+        }
+
+        return output.writeByte(value);
+    }
+
     public static UUID readUuid(ByteBuf input) {
         long most = input.readLong(), least = input.readLong();
         return new UUID(most, least);
@@ -32,7 +74,7 @@ public final class DataUtil {
     }
 
     public static <Element> Element[] readArray(ByteBuf input, Function<Integer, Element[]> arrayCreator, Reader<Element> elementReader) {
-        int size = VarIntUtil.read(input);
+        int size = readVarInt(input);
         Element[] array = arrayCreator.apply(size);
         for (int i = 0; i < size; i++) {
             array[i] = elementReader.read(input);
@@ -41,7 +83,7 @@ public final class DataUtil {
     }
 
     public static <Element> ByteBuf writeArray(ByteBuf output, Writer<Element> elementWriter, Element[] array) {
-        VarIntUtil.write(output, array.length);
+        writeVarInt(output, array.length);
         for (Element element : array) {
             output = elementWriter.write(output, element);
         }
@@ -53,18 +95,18 @@ public final class DataUtil {
     }
 
     public static int[] readVarIntArray(ByteBuf input) {
-        int size = VarIntUtil.read(input);
+        int size = readVarInt(input);
         int[] array = new int[size];
         for (int i = 0; i < size; i++) {
-            array[i] = VarIntUtil.read(input);
+            array[i] = readVarInt(input);
         }
         return array;
     }
 
     public static ByteBuf writeVarIntArray(ByteBuf output, int[] array) {
-        VarIntUtil.write(output, array.length);
+        writeVarInt(output, array.length);
         for (int element : array) {
-            VarIntUtil.write(output, element);
+            writeVarInt(output, element);
         }
         return output;
     }
