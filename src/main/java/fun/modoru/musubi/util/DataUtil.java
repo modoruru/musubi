@@ -5,6 +5,7 @@ import fun.modoru.musubi.data.Writer;
 import io.netty.buffer.ByteBuf;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Function;
@@ -84,16 +85,24 @@ public final class DataUtil {
         return (output, element) -> writeNullable(output, nonNullWriter, element);
     }
 
-    public static String readUtf8(ByteBuf input) {
+    public static String readString(ByteBuf input, Charset charset) {
         int size = input.readInt();
-        byte[] utf8 = new byte[size];
-        input.readBytes(utf8);
-        return new String(utf8, StandardCharsets.UTF_8);
+        byte[] raw = new byte[size];
+        input.readBytes(raw);
+        return new String(raw, charset);
+    }
+
+    public static ByteBuf writeString(ByteBuf output, Charset charset, String string) {
+        byte[] raw = string.getBytes(charset);
+        return output.writeInt(raw.length).writeBytes(raw);
+    }
+
+    public static String readUtf8(ByteBuf input) {
+        return readString(input, StandardCharsets.UTF_8);
     }
 
     public static ByteBuf writeUtf8(ByteBuf output, String utf8) {
-        byte[] rawUtf8 = utf8.getBytes(StandardCharsets.UTF_8);
-        return output.writeInt(rawUtf8.length).writeBytes(rawUtf8);
+        return writeString(output, StandardCharsets.UTF_8, utf8);
     }
 
 }

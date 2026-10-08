@@ -12,7 +12,7 @@ java {
 }
 
 dependencies {
-    compileOnly("io.netty:netty-buffer:4.2.18.Final")
+    compileOnly("io.netty:netty-all:4.2.19.Final")
     compileOnly("org.jspecify:jspecify:1.0.0")
 }
 
