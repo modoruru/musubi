@@ -193,7 +193,7 @@ public final class Protocol {
 
         @Override
         public void close() {
-            if(frozen) throw new IllegalStateException("builder instance is frozen");
+            if(frozen) return;
             frozen = true;
             result = new Protocol(flow, serverAuthorizationHandler, definitionsAndHandlers);
         }

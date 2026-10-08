@@ -9,16 +9,19 @@ import io.netty.handler.codec.quic.*;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class QuicServerSocket {
 
     public static final String PROTOCOL_NAME = "musubi";
 
-    protected final @Nullable QuicSslContext sslContext;
+    protected final QuicSslContext sslContext;
     protected final MultiThreadIoEventLoopGroup group;
     protected final int port;
+    public final AtomicBoolean running;
 
     public Channel channel;
     public MusubiServer musubiServer;
@@ -33,23 +36,22 @@ public class QuicServerSocket {
         );
     }
 
-    public QuicServerSocket(@Nullable QuicSslContext sslContext, MultiThreadIoEventLoopGroup group, int port) {
+    public QuicServerSocket(QuicSslContext sslContext, MultiThreadIoEventLoopGroup group, int port) {
         this.sslContext = sslContext;
         this.group = group;
         this.port = port;
+        this.running = new AtomicBoolean();
     }
 
-    public void start(MusubiServer musubiServer) throws InterruptedException {
+    public void start(MusubiServer musubiServer, @Nullable CompletableFuture<@Nullable Void> startedFuture) throws InterruptedException {
         this.musubiServer = musubiServer;
         try {
-            QuicServerCodecBuilder quicServerCodecBuilder = new QuicServerCodecBuilder();
-            if(sslContext != null) quicServerCodecBuilder.sslContext(sslContext);
-
             channel = new Bootstrap()
                     .group(group)
                     .channel(NioDatagramChannel.class)
                     .handler(
-                            quicServerCodecBuilder
+                            new QuicServerCodecBuilder()
+                                    .sslContext(sslContext)
                                     .maxIdleTimeout(30, TimeUnit.SECONDS)
                                     .initialMaxData(10000000)
                                     .initialMaxStreamDataBidirectionalLocal(1000000)
@@ -61,12 +63,19 @@ public class QuicServerSocket {
                     .bind(port)
                     .sync()
                     .channel();
+            running.set(true);
+            if(startedFuture != null) startedFuture.complete(null);
 
             channel.closeFuture().sync();
         }
         finally {
-            group.shutdownGracefully();
+            running.set(false);
+            group.shutdownGracefully().sync();
         }
+    }
+
+    public void shutdown() throws InterruptedException {
+        channel.close().sync();
     }
 
 }

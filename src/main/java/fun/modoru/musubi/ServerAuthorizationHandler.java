@@ -1,11 +1,11 @@
 package fun.modoru.musubi;
 
-import fun.modoru.musubi.server.MusubiProtocolHandler;
+import fun.modoru.musubi.server.MusubiConnection;
 import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface ServerAuthorizationHandler {
 
-    boolean authorize(MusubiProtocolHandler handler, @Nullable String authorization);
+    boolean authorize(MusubiConnection connection, @Nullable String authorization);
 
 }

@@ -55,7 +55,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
         // Client is either not authorized or haven't sent us its protocol version
         if(readPacket.packetInstance() instanceof AuthorizationPacket authorizationPacket) {
-            authorizationState = connection.protocol().serverAuthorizationHandler().authorize(this, authorizationPacket.authorization());
+            authorizationState = connection.protocol().serverAuthorizationHandler().authorize(connection, authorizationPacket.authorization());
             connection.send(AuthorizationResultPacket.DEFINITION, new AuthorizationResultPacket(UUID.randomUUID(), authorizationState));
             return;
         }
