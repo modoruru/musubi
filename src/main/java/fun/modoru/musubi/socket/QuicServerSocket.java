@@ -2,7 +2,6 @@ package fun.modoru.musubi.socket;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -21,6 +20,9 @@ public class QuicServerSocket {
     protected final MultiThreadIoEventLoopGroup group;
     protected final int port;
 
+    public Channel channel;
+    public MusubiServer musubiServer;
+
     public QuicServerSocket(File key, File cert, int port) {
         this(
                 QuicSslContextBuilder.forServer(key, null, cert)
@@ -37,12 +39,13 @@ public class QuicServerSocket {
         this.port = port;
     }
 
-    public void start() throws InterruptedException {
+    public void start(MusubiServer musubiServer) throws InterruptedException {
+        this.musubiServer = musubiServer;
         try {
             QuicServerCodecBuilder quicServerCodecBuilder = new QuicServerCodecBuilder();
             if(sslContext != null) quicServerCodecBuilder.sslContext(sslContext);
 
-            Channel channel = new Bootstrap()
+            channel = new Bootstrap()
                     .group(group)
                     .channel(NioDatagramChannel.class)
                     .handler(
@@ -52,12 +55,7 @@ public class QuicServerSocket {
                                     .initialMaxStreamDataBidirectionalLocal(1000000)
                                     .initialMaxStreamDataBidirectionalRemote(1000000)
                                     .initialMaxStreamsBidirectional(100)
-                                    .handler(new ChannelInitializer<QuicStreamChannel>() {
-                                        @Override
-                                        protected void initChannel(QuicStreamChannel ch) throws Exception {
-                                            ch.pipeline().addLast(new MusubiProtocolHandler());
-                                        }
-                                    })
+                                    .handler(musubiServer)
                                     .build()
                     )
                     .bind(port)

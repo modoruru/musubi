@@ -1,9 +1,14 @@
 package fun.modoru.musubi;
 
 import fun.modoru.musubi.packet.*;
+import fun.modoru.musubi.packets.*;
 import fun.modoru.musubi.util.DataUtil;
 import fun.modoru.musubi.util.Pair;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,15 +16,19 @@ import java.util.NoSuchElementException;
 
 public final class Protocol {
 
+    public static final int RESERVED_PACKETS = 10;
+
     private final Flow flow;
+    private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
     private final ProtocolVersion protocolVersion;
     private final PacketDefinition<?>[] definitions;
     private final PacketHandler<?, ?>[] handlers;
 
-    private Protocol(Flow flow, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
+    private Protocol(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
         this.flow = flow;
+        this.serverAuthorizationHandler = serverAuthorizationHandler;
 
-        int size = definitionsAndHandlers.size() + 2; // reservation for scheme and authorization
+        int size = definitionsAndHandlers.size() + RESERVED_PACKETS;
         protocolVersion = new ProtocolVersion(
                 new int[size],
                 new Flow[size]
@@ -27,14 +36,44 @@ public final class Protocol {
         definitions = new PacketDefinition[size];
         handlers = new PacketHandler[size];
 
+        includeReservations(
+                protocolVersion,
+                definitions,
+                handlers,
+                ConnectionClosurePacket.CLIENT_DEFINITION,
+                ConnectionClosurePacket.SERVER_DEFINITION,
+                AuthorizationPacket.DEFINITION,
+                AuthorizationResultPacket.DEFINITION,
+                ProtocolVersionPacket.DEFINITION,
+                ProtocolVersionSuccessPacket.DEFINITION
+        );
+
         for (int i = 0; i < definitionsAndHandlers.size(); i++) {
             Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>> definitionAndHandler = definitionsAndHandlers.get(i);
             PacketDefinition<?> definition = definitionAndHandler.a();
-            protocolVersion.versions()[i + 2] = definition.version();
-            protocolVersion.flows()[i + 2] = definition.flow();
-            definitions[i + 2] = definition;
-            handlers[i + 2] = definitionAndHandler.b();
+            protocolVersion.versions()[i + RESERVED_PACKETS] = definition.version();
+            protocolVersion.flows()[i + RESERVED_PACKETS] = definition.flow();
+            definitions[i + RESERVED_PACKETS] = definition;
+            handlers[i + RESERVED_PACKETS] = definitionAndHandler.b();
         }
+    }
+
+    private static void includeReservations(ProtocolVersion protocolVersion, PacketDefinition<?>[] definitions, PacketHandler<?, ?>[] handlers, PacketDefinition<?>... reservations) {
+        if(reservations.length > RESERVED_PACKETS) throw new IllegalArgumentException("More packets for reservation provided than this implementation supports");
+
+        for (int i = 0; i < reservations.length; i++) {
+            definitions[i] = reservations[i];
+            handlers[i] = PacketHandler.blank();
+        }
+
+        for (int i = reservations.length; i < RESERVED_PACKETS; i++) {
+            protocolVersion.versions()[i] = -1;
+            protocolVersion.flows()[i] = Flow.UNDEFINED;
+        }
+    }
+
+    public @Nullable ServerAuthorizationHandler serverAuthorizationHandler() {
+        return serverAuthorizationHandler;
     }
 
     public ProtocolVersion protocolVersion() {
@@ -82,16 +121,29 @@ public final class Protocol {
         );
     }
 
-    public void tryToHandle(ByteBuf input) {
+    public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> void writeAndFlush(Channel channel, Definition definition, Instance instance) {
+        ByteBuf output = Unpooled.buffer();
+        write(output, definition, instance);
+        channel.writeAndFlush(output);
+    }
+
+    public ReadPacket readPacket(ByteBuf input) throws PacketProcessingException {
         int id = input.readInt();
         if(id < 0 || id >= definitions.length) throw new PacketProcessingException("packet " + id, new ArrayIndexOutOfBoundsException(id));
 
         PacketDefinition<?> definition = definitions[id];
         if(definition.flow() != flow) throw new PacketProcessingException("packet " + id + " has flow " + definition.flow() + ", but this protocol only accepts " + flow.name());
 
+        return new ReadPacket(id, definition, definition.read(input));
+    }
+
+    public void tryToHandle(ChannelHandlerContext channelHandlerContext, ByteBuf input) {
+        tryToHandle(channelHandlerContext, readPacket(input));
+    }
+
+    public void tryToHandle(ChannelHandlerContext channelHandlerContext, ReadPacket readPacket) {
         try {
-            PacketInstance packetInstance = definition.read(input);
-            handlers[id].handle(cast(definition), cast(packetInstance));
+            handlers[readPacket.packetId].handle(channelHandlerContext, cast(readPacket.definition), cast(readPacket.packetInstance));
         }
         catch (Throwable throwable) {
             throw new PacketProcessingException(throwable);
@@ -102,19 +154,28 @@ public final class Protocol {
         return (E) object;
     }
 
-    public static Protocol.Builder builder(Flow flow) {
-        return new Builder(flow);
+    public static Protocol.Builder client() {
+        return new Builder(Flow.CLIENT, null);
     }
+
+    public static Protocol.Builder server(ServerAuthorizationHandler serverAuthorizationHandler) {
+        return new Builder(Flow.SERVER, serverAuthorizationHandler);
+    }
+
+    public record ReadPacket(int packetId, PacketDefinition<?> definition, PacketInstance packetInstance) {}
 
     public static final class Builder implements AutoCloseable {
 
         private final Flow flow;
+        private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
         private final List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers;
+
         private boolean frozen;
         private Protocol result;
 
-        public Builder(Flow flow) {
+        public Builder(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler) {
             this.flow = flow;
+            this.serverAuthorizationHandler = serverAuthorizationHandler;
             this.definitionsAndHandlers = new ArrayList<>();
         }
 
@@ -134,7 +195,7 @@ public final class Protocol {
         public void close() {
             if(frozen) throw new IllegalStateException("builder instance is frozen");
             frozen = true;
-            result = new Protocol(flow, definitionsAndHandlers);
+            result = new Protocol(flow, serverAuthorizationHandler, definitionsAndHandlers);
         }
 
     }

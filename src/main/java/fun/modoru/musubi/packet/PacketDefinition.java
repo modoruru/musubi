@@ -1,16 +1,33 @@
 package fun.modoru.musubi.packet;
 
 import fun.modoru.musubi.data.Codec;
+import fun.modoru.musubi.data.Reader;
+import fun.modoru.musubi.data.Writer;
+import fun.modoru.musubi.util.DataUtil;
 import io.netty.buffer.ByteBuf;
 
-public interface PacketDefinition<Instance extends Record & PacketInstance> extends Codec<Instance> {
+import java.util.UUID;
+import java.util.function.Function;
 
-    Flow flow();
+public record PacketDefinition<Instance extends Record & PacketInstance>(Flow flow, int version, Reader<Instance> reader, Writer<Instance> writer) implements Codec<Instance> {
 
-    int version();
+    public static <Instance extends Record & PacketInstance> PacketDefinition<Instance> onlyUuidPacket(Flow flow, int version, Function<UUID, Instance> constructor) {
+        return new PacketDefinition<>(
+                flow,
+                version,
+                input -> constructor.apply(DataUtil.readUuid(input)),
+                (output, element) -> DataUtil.writeUuid(output, element.uuid())
+        );
+    }
 
-    Instance read(ByteBuf input);
+    @Override
+    public Instance read(ByteBuf input) {
+        return reader.read(input);
+    }
 
-    ByteBuf write(ByteBuf output, Instance element);
+    @Override
+    public ByteBuf write(ByteBuf output, Instance element) {
+        return writer.write(output, element);
+    }
 
 }

@@ -5,6 +5,7 @@ package fun.modoru.musubi.packet;
  */
 public enum Flow {
 
+    UNDEFINED,
     CLIENT,
     SERVER
 
