@@ -26,13 +26,13 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+    public void handlerAdded(ChannelHandlerContext ctx) {
         connection = new MusubiConnection(ctx.channel(), musubiServer.protocol);
         musubiServer.addConnection(connection);
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
         Protocol.ReadPacket readPacket = connection.protocol().readPacket(msg);
 
         // We can accept a connection closure packet regardless of the connection's current state.
