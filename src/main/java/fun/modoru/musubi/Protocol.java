@@ -64,6 +64,8 @@ public final class Protocol {
         for (int i = 0; i < reservations.length; i++) {
             definitions[i] = reservations[i];
             handlers[i] = PacketHandler.blank();
+            protocolVersion.versions()[i] = reservations[i].version();
+            protocolVersion.flows()[i] = reservations[i].flow();
         }
 
         for (int i = reservations.length; i < RESERVED_PACKETS; i++) {

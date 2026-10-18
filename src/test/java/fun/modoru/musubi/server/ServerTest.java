@@ -1,39 +1,70 @@
 package fun.modoru.musubi.server;
 
 import fun.modoru.musubi.Protocol;
+import fun.modoru.musubi.client.CloseReason;
+import fun.modoru.musubi.client.MusubiClient;
+import fun.modoru.musubi.client.QuicClientSocket;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.quic.QuicSslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import io.netty.pkitesting.CertificateBuilder;
+import io.netty.pkitesting.X509Bundle;
 
-import java.security.cert.CertificateException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 public class ServerTest {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void test() throws CertificateException, InterruptedException {
+    public void test() throws Throwable {
         Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        Protocol protocol;
-        try (Protocol.Builder builder = Protocol.server((connection, authorization) -> true)) {
-            protocol = builder.build();
-        }
+        Protocol serverProtocol = Protocol.server((_, _) -> true).build();
+        Protocol clientProtocol = Protocol.client().build();
 
-        SelfSignedCertificate cert = new SelfSignedCertificate();
+        X509Bundle ca = new CertificateBuilder()
+                .subject("CN=Musubi Test CA")
+                .setIsCertificateAuthority(true)
+                .setKeyUsage(true,
+                        CertificateBuilder.KeyUsage.keyCertSign,
+                        CertificateBuilder.KeyUsage.digitalSignature)
+                .buildSelfSigned();
+
+        X509Bundle serverCert = new CertificateBuilder()
+                .subject("CN=localhost")
+                .setKeyUsage(true, CertificateBuilder.KeyUsage.digitalSignature)
+                .addExtendedKeyUsage(
+                        CertificateBuilder.ExtendedKeyUsage.PKIX_KP_SERVER_AUTH)
+                .addSanDnsName("localhost")
+                .addSanIpAddress("127.0.0.1")
+                .buildIssuedBy(ca);
 
         MusubiServer server = new MusubiServer(
-                protocol,
+                serverProtocol,
                 new QuicServerSocket(
-                        QuicSslContextBuilder.forServer(cert.key(), null, cert.cert())
+                        QuicSslContextBuilder.forServer(serverCert.getKeyPair().getPrivate(), null, serverCert.getCertificatePath())
                                 .applicationProtocols(QuicServerSocket.PROTOCOL_NAME)
                                 .build(),
                         new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor),
                         4242
                 )
+        );
+
+        MusubiClient client = new MusubiClient(
+                clientProtocol,
+                new QuicClientSocket(
+                        QuicSslContextBuilder.forClient()
+                                .trustManager(ca.getCertificate())
+                                .applicationProtocols(QuicServerSocket.PROTOCOL_NAME)
+                                .endpointIdentificationAlgorithm(null)
+                                .build(),
+                        new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor),
+                        new InetSocketAddress("127.0.0.1", 4242)
+                ),
+                null
         );
 
         CompletableFuture<Void> startedFuture = new CompletableFuture<>();
@@ -49,14 +80,23 @@ public class ServerTest {
 
         System.out.println("server started!");
 
-        long start = System.currentTimeMillis();
-        boolean calledStop = false;
-        while (server.running()) {
-            Thread.onSpinWait();
-            if(!calledStop && System.currentTimeMillis() - start > 5000) {
-                calledStop = true;
-                server.shutdown();
+        client.connect();
+        client.awaitAuthorization();
+        client.close("want to");
+
+        CloseReason closeReason = client.awaitClose();
+
+        server.shutdown();
+        switch (closeReason.type()) {
+            case UNDEFINED -> System.out.println("client closed unexpectedly");
+            case UNAUTHORIZED -> System.out.println("client failed to authorize");
+            case WRONG_PROTOCOL -> System.out.println("client and server have different protocols");
+            case EXCEPTION -> {
+                Assertions.assertNotNull(closeReason.throwable());
+                throw closeReason.throwable();
             }
+            case LOCAL_CLOSURE -> System.out.println("client closed on its own");
+            case GRACEFUL_CLOSURE -> System.out.printf("client closed because of: \"%s\"\n", closeReason.closurePacket().reason());
         }
     }
 

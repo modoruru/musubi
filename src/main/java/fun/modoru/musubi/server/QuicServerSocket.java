@@ -2,15 +2,13 @@ package fun.modoru.musubi.server;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.codec.quic.*;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,26 +17,16 @@ public class QuicServerSocket {
     public static final String PROTOCOL_NAME = "musubi";
 
     protected final QuicSslContext sslContext;
-    protected final MultiThreadIoEventLoopGroup group;
+    protected final MultiThreadIoEventLoopGroup eventLoopGroup;
     protected final int port;
     public final AtomicBoolean running;
 
     public Channel channel;
     public MusubiServer musubiServer;
 
-    public QuicServerSocket(File key, File cert, int port) {
-        this(
-                QuicSslContextBuilder.forServer(key, null, cert)
-                        .applicationProtocols(PROTOCOL_NAME)
-                        .build(),
-                new NioEventLoopGroup(1, (Executor) null),
-                port
-        );
-    }
-
-    public QuicServerSocket(QuicSslContext sslContext, MultiThreadIoEventLoopGroup group, int port) {
+    public QuicServerSocket(QuicSslContext sslContext, MultiThreadIoEventLoopGroup eventLoopGroup, int port) {
         this.sslContext = sslContext;
-        this.group = group;
+        this.eventLoopGroup = eventLoopGroup;
         this.port = port;
         this.running = new AtomicBoolean();
     }
@@ -47,7 +35,7 @@ public class QuicServerSocket {
         this.musubiServer = musubiServer;
         try {
             channel = new Bootstrap()
-                    .group(group)
+                    .group(eventLoopGroup)
                     .channel(NioDatagramChannel.class)
                     .handler(
                             new QuicServerCodecBuilder()
@@ -57,7 +45,12 @@ public class QuicServerSocket {
                                     .initialMaxStreamDataBidirectionalLocal(1000000)
                                     .initialMaxStreamDataBidirectionalRemote(1000000)
                                     .initialMaxStreamsBidirectional(100)
-                                    .handler(musubiServer)
+                                    .streamHandler(new ChannelInitializer<QuicStreamChannel>() {
+                                        @Override
+                                        protected void initChannel(QuicStreamChannel ch) {
+                                            ch.pipeline().addLast(new MusubiProtocolHandler(musubiServer));
+                                        }
+                                    })
                                     .build()
                     )
                     .bind(port)
@@ -70,7 +63,7 @@ public class QuicServerSocket {
         }
         finally {
             running.set(false);
-            group.shutdownGracefully().sync();
+            eventLoopGroup.shutdownGracefully().sync();
         }
     }
 

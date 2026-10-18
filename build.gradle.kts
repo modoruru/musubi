@@ -18,6 +18,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.netty:netty-pkitesting:4.2.19.Final")
 }
 
 tasks {

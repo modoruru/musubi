@@ -3,14 +3,14 @@ package fun.modoru.musubi.server;
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.channel.ChannelInitializer;
-import io.netty.handler.codec.quic.QuicStreamChannel;
+import io.netty.handler.codec.quic.QuicChannel;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public class MusubiServer extends ChannelInitializer<QuicStreamChannel> {
+public class MusubiServer {
 
     protected final Protocol protocol;
     protected final QuicServerSocket serverSocket;
@@ -42,11 +42,6 @@ public class MusubiServer extends ChannelInitializer<QuicStreamChannel> {
 
     void addConnection(MusubiConnection connection) {
         connections.add(connection);
-    }
-
-    @Override
-    protected void initChannel(QuicStreamChannel channel) throws Exception {
-        channel.pipeline().addLast(new MusubiProtocolHandler(this));
     }
 
 }
