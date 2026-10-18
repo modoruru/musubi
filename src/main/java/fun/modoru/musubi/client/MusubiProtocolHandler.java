@@ -78,6 +78,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
                     return;
                 }
 
+                authorizationState = AuthorizationState.PROTOCOL_DECLINE;
                 musubiClient.finish(CloseReason.unauthorized());
                 connection.close();
             }
