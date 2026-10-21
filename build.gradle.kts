@@ -50,7 +50,7 @@ extensions.configure<PublishingExtension> {
             from(components["java"])
             artifact(sourcesJar.get())
 
-            group = project.group.toString();
+            group = "fun.modoru"
             artifactId = "musubi"
             version = project.version.toString()
         }
