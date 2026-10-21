@@ -8,8 +8,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.UUID;
-
 public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private final MusubiServer musubiServer;
@@ -23,7 +21,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
     }
 
     private void close(String reason) {
-        connection.send(ConnectionClosurePacket.CLIENT_DEFINITION, new ConnectionClosurePacket(UUID.randomUUID(), reason));
+        connection.send(ConnectionClosurePacket.CLIENT_DEFINITION, new ConnectionClosurePacket(reason));
     }
 
     @Override
@@ -57,7 +55,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         // Client is either not authorized or haven't sent us its protocol version
         if(readPacket.packetInstance() instanceof AuthorizationPacket authorizationPacket) {
             authorizationState = connection.protocol().serverAuthorizationHandler().authorize(connection, authorizationPacket.authorization());
-            connection.send(AuthorizationResultPacket.DEFINITION, new AuthorizationResultPacket(UUID.randomUUID(), authorizationState));
+            connection.send(AuthorizationResultPacket.DEFINITION, new AuthorizationResultPacket(authorizationState));
             return;
         }
 
@@ -77,14 +75,14 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             }
 
             for (int i = 0; i < serverPacketsAmount; i++) {
-                if(serverProtocol.versions()[i] != clientProtocol.versions()[i] || serverProtocol.flows()[i] != clientProtocol.flows()[i]) {
+                if(serverProtocol.versions()[i] != clientProtocol.versions()[i] || serverProtocol.directions()[i] != clientProtocol.directions()[i]) {
                     close("Protocols are different - can't continue.");
                     return;
                 }
             }
 
             agreedOnProtocol = true;
-            connection.send(ProtocolVersionSuccessPacket.DEFINITION, new ProtocolVersionSuccessPacket(UUID.randomUUID()));
+            connection.send(ProtocolVersionSuccessPacket.DEFINITION, new ProtocolVersionSuccessPacket());
             return;
         }
 

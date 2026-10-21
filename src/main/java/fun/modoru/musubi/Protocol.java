@@ -18,20 +18,20 @@ public final class Protocol {
 
     public static final int RESERVED_PACKETS = 10;
 
-    private final Flow flow;
+    private final Direction direction;
     private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
     private final ProtocolVersion protocolVersion;
     private final PacketDefinition<?>[] definitions;
     private final PacketHandler<?, ?>[] handlers;
 
-    Protocol(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
-        this.flow = flow;
+    Protocol(Direction direction, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
+        this.direction = direction;
         this.serverAuthorizationHandler = serverAuthorizationHandler;
 
         int size = definitionsAndHandlers.size() + RESERVED_PACKETS;
         protocolVersion = new ProtocolVersion(
                 new int[size],
-                new Flow[size]
+                new Direction[size]
         );
         definitions = new PacketDefinition[size];
         handlers = new PacketHandler[size];
@@ -52,7 +52,7 @@ public final class Protocol {
             Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>> definitionAndHandler = definitionsAndHandlers.get(i);
             PacketDefinition<?> definition = definitionAndHandler.a();
             protocolVersion.versions()[i + RESERVED_PACKETS] = definition.version();
-            protocolVersion.flows()[i + RESERVED_PACKETS] = definition.flow();
+            protocolVersion.directions()[i + RESERVED_PACKETS] = definition.direction();
             definitions[i + RESERVED_PACKETS] = definition;
             handlers[i + RESERVED_PACKETS] = definitionAndHandler.b();
         }
@@ -65,12 +65,12 @@ public final class Protocol {
             definitions[i] = reservations[i];
             handlers[i] = PacketHandler.blank();
             protocolVersion.versions()[i] = reservations[i].version();
-            protocolVersion.flows()[i] = reservations[i].flow();
+            protocolVersion.directions()[i] = reservations[i].direction();
         }
 
         for (int i = reservations.length; i < RESERVED_PACKETS; i++) {
             protocolVersion.versions()[i] = -1;
-            protocolVersion.flows()[i] = Flow.UNDEFINED;
+            protocolVersion.directions()[i] = Direction.UNDEFINED;
         }
     }
 
@@ -112,7 +112,7 @@ public final class Protocol {
         return result;
     }
 
-    public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> void write(ByteBuf output, Definition definition, Instance instance) {
+    public <Instance extends Record, Definition extends PacketDefinition<Instance>> void write(ByteBuf output, Definition definition, Instance instance) {
         int id = findDefinitionId(definition);
         if(id == -1) throw new NoSuchElementException("This packet definition is not registered in that protocol");
 
@@ -123,7 +123,7 @@ public final class Protocol {
         );
     }
 
-    public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> void writeAndFlush(Channel channel, Definition definition, Instance instance) {
+    public <Instance extends Record, Definition extends PacketDefinition<Instance>> void writeAndFlush(Channel channel, Definition definition, Instance instance) {
         ByteBuf output = Unpooled.buffer();
         write(output, definition, instance);
         channel.writeAndFlush(output);
@@ -134,7 +134,7 @@ public final class Protocol {
         if(id < 0 || id >= definitions.length) throw new PacketProcessingException("packet " + id, new ArrayIndexOutOfBoundsException(id));
 
         PacketDefinition<?> definition = definitions[id];
-        if(definition.flow() != flow) throw new PacketProcessingException("packet " + id + " has flow " + definition.flow() + ", but this protocol only accepts " + flow.name());
+        if(definition.direction() != direction) throw new PacketProcessingException("packet " + id + " has direction " + definition.direction() + ", but this protocol only accepts " + direction.name());
 
         return new ReadPacket(id, definition, definition.read(input));
     }
@@ -157,37 +157,37 @@ public final class Protocol {
     }
 
     public static Protocol.Builder client() {
-        return new Builder(Flow.CLIENT, null);
+        return new Builder(Direction.CLIENT, null);
     }
 
     public static Protocol.Builder server(ServerAuthorizationHandler serverAuthorizationHandler) {
-        return new Builder(Flow.SERVER, serverAuthorizationHandler);
+        return new Builder(Direction.SERVER, serverAuthorizationHandler);
     }
 
-    public record ReadPacket(int packetId, PacketDefinition<?> definition, PacketInstance packetInstance) {}
+    public record ReadPacket(int packetId, PacketDefinition<?> definition, Record packetInstance) {}
 
     public static final class Builder {
 
-        private final Flow acceptingFlow;
+        private final Direction acceptingDirection;
         private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
         private final List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers;
 
         private boolean frozen;
         private Protocol result;
 
-        public Builder(Flow acceptingFlow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler) {
-            this.acceptingFlow = acceptingFlow;
+        public Builder(Direction acceptingDirection, @Nullable ServerAuthorizationHandler serverAuthorizationHandler) {
+            this.acceptingDirection = acceptingDirection;
             this.serverAuthorizationHandler = serverAuthorizationHandler;
             this.definitionsAndHandlers = new ArrayList<>();
         }
 
-        public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> Builder add(Definition definition) {
+        public <Instance extends Record, Definition extends PacketDefinition<Instance>> Builder add(Definition definition) {
             if(frozen) throw new IllegalStateException("builder instance is frozen");
             definitionsAndHandlers.add(new Pair<>(definition, PacketHandler.blank()));
             return this;
         }
 
-        public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> Builder add(Definition definition, PacketHandler<Instance, Definition> handler) {
+        public <Instance extends Record, Definition extends PacketDefinition<Instance>> Builder add(Definition definition, PacketHandler<Instance, Definition> handler) {
             if(frozen) throw new IllegalStateException("builder instance is frozen");
             definitionsAndHandlers.add(new Pair<>(definition, handler));
             return this;
@@ -196,7 +196,7 @@ public final class Protocol {
         public Protocol build() {
             if(frozen) return result;
             frozen = true;
-            result = new Protocol(acceptingFlow, serverAuthorizationHandler, definitionsAndHandlers);
+            result = new Protocol(acceptingDirection, serverAuthorizationHandler, definitionsAndHandlers);
             return result;
         }
 

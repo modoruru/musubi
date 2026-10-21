@@ -34,7 +34,7 @@ public final class UserDefinition {
     private UserDefinition() {}
 
     public static UserProperty<?> byId(int id) {
-
+        return ID_TO_PROPERTY.get(id);
     }
 
     private static <E> UserProperty<E> defineNullable(Codec<E> nonNullable) {

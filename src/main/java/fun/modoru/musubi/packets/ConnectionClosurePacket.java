@@ -2,28 +2,17 @@ package fun.modoru.musubi.packets;
 
 import fun.modoru.musubi.data.Reader;
 import fun.modoru.musubi.data.Writer;
-import fun.modoru.musubi.packet.Flow;
+import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
-import fun.modoru.musubi.packet.PacketInstance;
 import fun.modoru.musubi.util.DataUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
+public record ConnectionClosurePacket(@Nullable String reason)  {
 
-public record ConnectionClosurePacket(UUID uuid, @Nullable String reason) implements PacketInstance {
-
-    private static final Reader<ConnectionClosurePacket> READER = input -> new ConnectionClosurePacket(
-            DataUtil.readUuid(input),
-            DataUtil.readNullable(input, DataUtil::readUtf8)
-    );
-
-    private static final Writer<ConnectionClosurePacket> WRITER = (output, element) -> DataUtil.writeSequentially(
-            output,
-            DataUtil::writeUuid, DataUtil.nullableWriter(DataUtil::writeUtf8),
-            element.uuid, element.reason
-    );
+    private static final Reader<ConnectionClosurePacket> READER = input -> new ConnectionClosurePacket(DataUtil.readNullable(input, DataUtil::readUtf8));
+    private static final Writer<ConnectionClosurePacket> WRITER = (output, element) -> DataUtil.writeNullable(output, DataUtil::writeUtf8, element.reason);
 
     public static final PacketDefinition<ConnectionClosurePacket>
-            CLIENT_DEFINITION = new PacketDefinition<>(Flow.CLIENT, Integer.MIN_VALUE, READER, WRITER),
-            SERVER_DEFINITION = new PacketDefinition<>(Flow.SERVER, Integer.MIN_VALUE, READER, WRITER);
+            CLIENT_DEFINITION = new PacketDefinition<>(Direction.CLIENT, Integer.MIN_VALUE, READER, WRITER),
+            SERVER_DEFINITION = new PacketDefinition<>(Direction.SERVER, Integer.MIN_VALUE, READER, WRITER);
 }

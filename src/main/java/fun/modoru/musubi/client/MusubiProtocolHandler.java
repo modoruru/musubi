@@ -8,8 +8,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
-
 public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private final MusubiClient musubiClient;
@@ -22,7 +20,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
     }
 
     void startAuthorization(@Nullable String authorization) {
-        connection.send(AuthorizationPacket.DEFINITION, new AuthorizationPacket(UUID.randomUUID(), authorization));
+        connection.send(AuthorizationPacket.DEFINITION, new AuthorizationPacket(authorization));
         authorizationState = AuthorizationState.SENT_AUTHORIZATION;
     }
 
@@ -63,7 +61,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             case SENT_AUTHORIZATION -> {
                 if(readPacket.packetInstance() instanceof AuthorizationResultPacket authorizationResultPacket && authorizationResultPacket.success()) {
                     authorizationState = AuthorizationState.SENT_PROTOCOL;
-                    connection.send(ProtocolVersionPacket.DEFINITION, new ProtocolVersionPacket(UUID.randomUUID(), connection.protocol().protocolVersion()));
+                    connection.send(ProtocolVersionPacket.DEFINITION, new ProtocolVersionPacket(connection.protocol().protocolVersion()));
                     return;
                 }
 

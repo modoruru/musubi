@@ -1,9 +1,8 @@
 package fun.modoru.musubi.builtin.data;
 
 import fun.modoru.musubi.data.Codec;
-import io.netty.buffer.ByteBuf;
 
-public final class UserProperty<E> implements Codec<E> {
+public final class UserProperty<E> {
 
     private final int index;
     private final Codec<E> codec;
@@ -19,16 +18,6 @@ public final class UserProperty<E> implements Codec<E> {
 
     public Codec<E> codec() {
         return codec;
-    }
-
-    @Override
-    public E read(ByteBuf input) {
-        return codec.read(input);
-    }
-
-    @Override
-    public ByteBuf write(ByteBuf output, E element) {
-        return codec.write(output, element);
     }
 
 }

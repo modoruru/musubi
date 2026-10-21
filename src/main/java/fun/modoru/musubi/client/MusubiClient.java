@@ -1,4 +1,3 @@
-
 package fun.modoru.musubi.client;
 
 import fun.modoru.musubi.Protocol;
@@ -8,7 +7,6 @@ import io.netty.handler.codec.quic.QuicChannel;
 import io.netty.handler.codec.quic.QuicStreamChannel;
 import org.jspecify.annotations.Nullable;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -76,7 +74,7 @@ public class MusubiClient implements AutoCloseable {
     public void close(@Nullable String reason) {
         finish(CloseReason.localClosure());
         if(musubiConnection != null)
-            musubiConnection.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(UUID.randomUUID(), reason));
+            musubiConnection.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(reason));
         quicClientSocket.close();
     }
 
