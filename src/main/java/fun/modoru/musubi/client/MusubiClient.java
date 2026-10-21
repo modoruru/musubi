@@ -2,7 +2,6 @@ package fun.modoru.musubi.client;
 
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.packets.ConnectionClosurePacket;
-import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.handler.codec.quic.QuicChannel;
 import io.netty.handler.codec.quic.QuicStreamChannel;
 import org.jspecify.annotations.Nullable;
@@ -14,24 +13,26 @@ public class MusubiClient implements AutoCloseable {
 
     protected final Protocol protocol;
     protected final QuicClientSocket quicClientSocket;
+    protected final String identifier;
     protected final @Nullable String authorization;
     protected final CompletableFuture<CloseReason> closeReasonFuture;
     protected final CompletableFuture<@Nullable Void> authorizationFuture;
 
     public @Nullable QuicChannel connection;
     public @Nullable QuicStreamChannel stream;
-    public @Nullable MusubiConnection musubiConnection;
+    public @Nullable ClientConnection clientConnection;
 
-    public MusubiClient(Protocol protocol, QuicClientSocket quicClientSocket, @Nullable String authorization) {
+    public MusubiClient(Protocol protocol, QuicClientSocket quicClientSocket, String identifier, @Nullable String authorization) {
         this.protocol = protocol;
         this.quicClientSocket = quicClientSocket;
+        this.identifier = identifier;
         this.authorization = authorization;
         this.closeReasonFuture = new CompletableFuture<>();
         this.authorizationFuture = new CompletableFuture<>();
     }
 
-    void setMusubiConnection(MusubiConnection musubiConnection) {
-        this.musubiConnection = musubiConnection;
+    void setMusubiConnection(ClientConnection clientConnection) {
+        this.clientConnection = clientConnection;
     }
 
     void finish(CloseReason reason) {
@@ -73,8 +74,8 @@ public class MusubiClient implements AutoCloseable {
 
     public void close(@Nullable String reason) {
         finish(CloseReason.localClosure());
-        if(musubiConnection != null)
-            musubiConnection.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(reason));
+        if(clientConnection != null)
+            clientConnection.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(reason));
         quicClientSocket.close();
     }
 

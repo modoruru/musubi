@@ -23,7 +23,7 @@ public class ConnectionTest {
     public void test() throws Throwable {
         Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        Protocol serverProtocol = Protocol.server((_, _) -> true).build();
+        Protocol serverProtocol = Protocol.server((_, _, _) -> true).build();
         Protocol clientProtocol = Protocol.client().build();
 
         X509Bundle ca = new CertificateBuilder()
@@ -65,6 +65,7 @@ public class ConnectionTest {
                         new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor),
                         new InetSocketAddress("127.0.0.1", 4242)
                 ),
+                "client",
                 null
         );
 

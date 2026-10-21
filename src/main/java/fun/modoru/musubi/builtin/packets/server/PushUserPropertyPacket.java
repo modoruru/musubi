@@ -8,7 +8,7 @@ import fun.modoru.musubi.util.DataUtil;
 
 import java.util.UUID;
 
-public record PushUserPropertyPacket(UUID uuid, int index, Object property) {
+public record PushUserPropertyPacket(UUID uuid, int propertyId, Object propertyValue) {
 
     public static final PacketDefinition<PushUserPropertyPacket> DEFINITION = new PacketDefinition<>(
             Direction.SERVER,
@@ -20,8 +20,8 @@ public record PushUserPropertyPacket(UUID uuid, int index, Object property) {
             },
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, DataUtil::writeVarInt, ((UserProperty<Object>) UserDefinition.byId(element.index)).codec(),
-                    element.uuid, element.index, element.property
+                    DataUtil::writeUuid, DataUtil::writeVarInt, ((UserProperty<Object>) UserDefinition.byId(element.propertyId)).codec(),
+                    element.uuid, element.propertyId, element.propertyValue
             )
     );
 

@@ -4,16 +4,16 @@ import fun.modoru.musubi.data.Codec;
 
 public final class UserProperty<E> {
 
-    private final int index;
+    private final int id;
     private final Codec<E> codec;
 
-    UserProperty(int index, Codec<E> codec) {
-        this.index = index;
+    UserProperty(int id, Codec<E> codec) {
+        this.id = id;
         this.codec = codec;
     }
 
-    public int index() {
-        return index;
+    public int id() {
+        return id;
     }
 
     public Codec<E> codec() {

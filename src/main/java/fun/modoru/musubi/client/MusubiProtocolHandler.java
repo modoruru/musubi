@@ -2,7 +2,6 @@ package fun.modoru.musubi.client;
 
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.packets.*;
-import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,28 +11,28 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     private final MusubiClient musubiClient;
 
-    private @Nullable MusubiConnection connection;
+    private @Nullable ClientConnection connection;
     private AuthorizationState authorizationState = AuthorizationState.START;
 
     public MusubiProtocolHandler(MusubiClient musubiClient) {
         this.musubiClient = musubiClient;
     }
 
-    void startAuthorization(@Nullable String authorization) {
-        connection.send(AuthorizationPacket.DEFINITION, new AuthorizationPacket(authorization));
+    void startAuthorization(String identifier, @Nullable String authorization) {
+        connection.send(AuthorizationPacket.DEFINITION, new AuthorizationPacket(identifier, authorization));
         authorizationState = AuthorizationState.SENT_AUTHORIZATION;
     }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        connection = new MusubiConnection(ctx.channel(), musubiClient.protocol);
+        connection = new ClientConnection(ctx.channel(), musubiClient.protocol);
         musubiClient.setMusubiConnection(connection);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         try {
-            startAuthorization(musubiClient.authorization);
+            startAuthorization(musubiClient.identifier, musubiClient.authorization);
         }
         catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -52,7 +51,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             return;
         }
 
-        System.out.printf("received packet: %s, authorizatino state: %s\n", readPacket.packetInstance().getClass().getSimpleName(), authorizationState.name());
+        System.out.printf("received packet: %s, authorization state: %s\n", readPacket.packetInstance().getClass().getSimpleName(), authorizationState.name());
 
         switch (authorizationState) {
             case AUTHORIZATION_DECLINE, PROTOCOL_DECLINE -> {
@@ -77,7 +76,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 }
 
                 authorizationState = AuthorizationState.PROTOCOL_DECLINE;
-                musubiClient.finish(CloseReason.unauthorized());
+                musubiClient.finish(CloseReason.wrongProtocol());
                 connection.close();
             }
         }

@@ -7,7 +7,7 @@ import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
 
-public record TrackingUpdatePropertyPacket(Identifier identifier, int index, Object element) {
+public record TrackingUpdatePropertyPacket(Identifier identifier, int propertyId, Object propertyValue) {
 
     public static final PacketDefinition<TrackingUpdatePropertyPacket> DEFINITION = new PacketDefinition<>(
             Direction.CLIENT, Integer.MIN_VALUE,
@@ -18,8 +18,8 @@ public record TrackingUpdatePropertyPacket(Identifier identifier, int index, Obj
             },
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    Identifier.CODEC, DataUtil::writeVarInt, ((UserProperty<Object>) UserDefinition.byId(element.index)).codec(),
-                    element.identifier, element.index, element.element
+                    Identifier.CODEC, DataUtil::writeVarInt, ((UserProperty<Object>) UserDefinition.byId(element.propertyId)).codec(),
+                    element.identifier, element.propertyId, element.propertyValue
             )
     );
 

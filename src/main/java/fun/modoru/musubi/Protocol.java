@@ -3,6 +3,7 @@ package fun.modoru.musubi;
 import fun.modoru.musubi.packet.*;
 import fun.modoru.musubi.packets.*;
 import fun.modoru.musubi.peer.MusubiConnection;
+import fun.modoru.musubi.server.ServerAuthorizationHandler;
 import fun.modoru.musubi.util.DataUtil;
 import fun.modoru.musubi.util.Pair;
 import io.netty.buffer.ByteBuf;

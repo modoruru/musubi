@@ -1,4 +1,4 @@
-package fun.modoru.musubi;
+package fun.modoru.musubi.server;
 
 import fun.modoru.musubi.peer.MusubiConnection;
 import org.jspecify.annotations.Nullable;
@@ -6,6 +6,6 @@ import org.jspecify.annotations.Nullable;
 @FunctionalInterface
 public interface ServerAuthorizationHandler {
 
-    boolean authorize(MusubiConnection connection, @Nullable String authorization);
+    boolean authorize(MusubiConnection connection, String identifier, @Nullable String authorization);
 
 }

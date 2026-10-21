@@ -3,7 +3,6 @@ package fun.modoru.musubi.server;
 import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.ProtocolVersion;
 import fun.modoru.musubi.packets.*;
-import fun.modoru.musubi.peer.MusubiConnection;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,7 +11,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     private final MusubiServer musubiServer;
 
-    private MusubiConnection connection;
+    private ServerConnection connection;
     private boolean authorizationState;
     private boolean agreedOnProtocol;
 
@@ -22,17 +21,18 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     private void close(String reason) {
         connection.send(ConnectionClosurePacket.CLIENT_DEFINITION, new ConnectionClosurePacket(reason));
+        connection.close();
     }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) {
-        connection = new MusubiConnection(ctx.channel(), musubiServer.protocol);
+        connection = new ServerConnection(ctx.channel(), musubiServer.protocol);
         musubiServer.addConnection(connection);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
-        Protocol.ReadPacket readPacket = connection.protocol().readPacket(msg);
+        Protocol.ReadPacket readPacket = connection.protocol.readPacket(msg);
 
         // We can accept a connection closure packet regardless of the connection's current state.
         if(readPacket.packetInstance() instanceof ConnectionClosurePacket connectionClosurePacket) {
@@ -43,7 +43,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         // Client's authorized and sent us its protocol so we can transfer packet to packet's handler safely
         if(authorizationState && agreedOnProtocol) {
             try {
-                connection.protocol().tryToHandle(connection, readPacket);
+                connection.protocol.tryToHandle(connection, readPacket);
             }
             catch (Throwable throwable) {
                 connection.close();
@@ -53,9 +53,17 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         }
 
         // Client is either not authorized or haven't sent us its protocol version
-        if(readPacket.packetInstance() instanceof AuthorizationPacket authorizationPacket) {
-            authorizationState = connection.protocol().serverAuthorizationHandler().authorize(connection, authorizationPacket.authorization());
+        if(readPacket.packetInstance() instanceof AuthorizationPacket(String identifier, String authorization)) {
+            if(musubiServer.identifiedConnections.get(identifier) != null)
+                authorizationState = false;
+            else authorizationState = connection.protocol.serverAuthorizationHandler().authorize(connection, identifier, authorization);
+
             connection.send(AuthorizationResultPacket.DEFINITION, new AuthorizationResultPacket(authorizationState));
+            if(!authorizationState) close("failed authorization");
+            else {
+                connection.identifier = identifier;
+                musubiServer.identify(identifier, connection);
+            }
             return;
         }
 
@@ -65,9 +73,8 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             return;
         }
 
-        if(readPacket.packetInstance() instanceof ProtocolVersionPacket protocolVersionPacket) {
-            ProtocolVersion serverProtocol = connection.protocol().protocolVersion();
-            ProtocolVersion clientProtocol = protocolVersionPacket.protocolVersion();
+        if(readPacket.packetInstance() instanceof ProtocolVersionPacket(ProtocolVersion clientProtocol)) {
+            ProtocolVersion serverProtocol = connection.protocol.protocolVersion();
             int serverPacketsAmount = serverProtocol.versions().length, clientPacketsAmount = clientProtocol.versions().length;
             if(serverPacketsAmount != clientPacketsAmount) {
                 close("Protocols are different - can't continue.");
@@ -87,6 +94,12 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         }
 
         close("Sent your protocol version first.");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        musubiServer.onClientDisconnected(connection);
+        super.channelInactive(ctx);
     }
 
 }

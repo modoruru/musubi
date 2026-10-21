@@ -16,16 +16,44 @@ public final class DataUtil {
 
     private DataUtil() {}
 
-    public static <E1, E2> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, E1 e1, E2 e2) {
+    public static <E1, E2> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer,
+            E1 e1, E2 e2
+    ) {
         return e2Writer.write(e1Writer.write(output, e1), e2);
     }
 
-    public static <E1, E2, E3> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, E1 e1, E2 e2, E3 e3) {
+    public static <E1, E2, E3> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer,
+            E1 e1, E2 e2, E3 e3
+    ) {
         return e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3);
     }
 
-    public static <E1, E2, E3, E4> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer, E1 e1, E2 e2, E3 e3, E4 e4) {
+    public static <E1, E2, E3, E4> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer,
+            E1 e1, E2 e2, E3 e3, E4 e4
+    ) {
         return e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4);
+    }
+
+    public static <E1, E2, E3, E4, E5> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer, Writer<E5> e5Writer,
+            E1 e1, E2 e2, E3 e3, E4 e4, E5 e5
+    ) {
+        return e5Writer.write(e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4), e5);
+    }
+
+    public static <E1, E2, E3, E4, E5, E6> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer, Writer<E5> e5Writer, Writer<E6> e6Writer,
+            E1 e1, E2 e2, E3 e3, E4 e4, E5 e5, E6 e6
+    ) {
+        return e6Writer.write(e5Writer.write(e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4), e5), e6);
     }
 
     public static boolean hasContinuationBit(byte in) {
