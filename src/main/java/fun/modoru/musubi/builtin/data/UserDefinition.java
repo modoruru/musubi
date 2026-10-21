@@ -37,6 +37,18 @@ public final class UserDefinition {
         return ID_TO_PROPERTY.get(id);
     }
 
+    public static int length() {
+        return GLOBAL_INDEX.get();
+    }
+
+    public static UserProperty<?>[] properties() {
+        UserProperty<?>[] result = new UserProperty[length()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = ID_TO_PROPERTY.get(i);
+        }
+        return result;
+    }
+
     private static <E> UserProperty<E> defineNullable(Codec<E> nonNullable) {
         return define(new FixedCodec<>(
                 input -> DataUtil.readNullable(input, nonNullable),
