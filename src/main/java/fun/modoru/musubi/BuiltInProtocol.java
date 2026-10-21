@@ -49,7 +49,7 @@ public final class BuiltInProtocol {
 
         private final Direction acceptingDirection;
         private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
-        private final Map<PacketDefinition<?>, PacketHandler<?, ?>> definitionsToHandlers;
+        private final Map<PacketDefinition<?>, PacketHandler<?>> definitionsToHandlers;
 
         private boolean frozen;
         private Protocol result;
@@ -60,7 +60,7 @@ public final class BuiltInProtocol {
             this.definitionsToHandlers = new HashMap<>();
         }
 
-        public <Instance extends Record, Definition extends PacketDefinition<Instance>> Builder defineHandler(Definition definition, PacketHandler<Instance, Definition> handler) {
+        public <Instance extends Record> Builder defineHandler(PacketDefinition<Instance>  definition, PacketHandler<Instance> handler) {
             if(acceptingDirection.opposite() == definition.direction())
                 throw new IllegalArgumentException(String.format("You're trying to define handler for packet that has direction \"%s\", but this builder only accepts handlers for \"%s\".", definition.direction().name(), acceptingDirection));
             if(!DEFINITIONS.contains(definition))
@@ -73,10 +73,10 @@ public final class BuiltInProtocol {
         public Protocol build() {
             if(frozen) return result;
 
-            List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers = new ArrayList<>();
-            PacketHandler<?, ?> blank = PacketHandler.blank();
+            List<Pair<? extends PacketDefinition<?>, PacketHandler<?>>> definitionsAndHandlers = new ArrayList<>();
+            PacketHandler<?> blank = PacketHandler.blank();
             for (PacketDefinition<?> definition : DEFINITIONS) {
-                PacketHandler<?, ?> packetHandler = definitionsToHandlers.get(definition);
+                PacketHandler<?> packetHandler = definitionsToHandlers.get(definition);
                 if(definition.direction() == acceptingDirection) {
                     if(packetHandler == null) throw new IllegalStateException("Some handlers are missing.");
                 }

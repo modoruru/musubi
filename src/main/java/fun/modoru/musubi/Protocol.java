@@ -23,9 +23,9 @@ public final class Protocol {
     private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
     private final ProtocolVersion protocolVersion;
     private final PacketDefinition<?>[] definitions;
-    private final PacketHandler<?, ?>[] handlers;
+    private final PacketHandler<?>[] handlers;
 
-    Protocol(Direction direction, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
+    Protocol(Direction direction, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?>>> definitionsAndHandlers) {
         this.direction = direction;
         this.serverAuthorizationHandler = serverAuthorizationHandler;
 
@@ -50,7 +50,7 @@ public final class Protocol {
         );
 
         for (int i = 0; i < definitionsAndHandlers.size(); i++) {
-            Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>> definitionAndHandler = definitionsAndHandlers.get(i);
+            Pair<? extends PacketDefinition<?>, PacketHandler<?>> definitionAndHandler = definitionsAndHandlers.get(i);
             PacketDefinition<?> definition = definitionAndHandler.a();
             protocolVersion.versions()[i + RESERVED_PACKETS] = definition.version();
             protocolVersion.directions()[i + RESERVED_PACKETS] = definition.direction();
@@ -59,7 +59,7 @@ public final class Protocol {
         }
     }
 
-    private static void includeReservations(ProtocolVersion protocolVersion, PacketDefinition<?>[] definitions, PacketHandler<?, ?>[] handlers, PacketDefinition<?>... reservations) {
+    private static void includeReservations(ProtocolVersion protocolVersion, PacketDefinition<?>[] definitions, PacketHandler<?>[] handlers, PacketDefinition<?>... reservations) {
         if(reservations.length > RESERVED_PACKETS) throw new IllegalArgumentException("More packets for reservation provided than this implementation supports");
 
         for (int i = 0; i < reservations.length; i++) {
@@ -98,11 +98,11 @@ public final class Protocol {
         return result;
     }
 
-    public PacketHandler<?, ?> handler(int byId) {
+    public PacketHandler<?> handler(int byId) {
         return handlers[byId];
     }
 
-    public int findHandlerId(PacketHandler<?, ?> handler) {
+    public int findHandlerId(PacketHandler<?> handler) {
         int result = -1;
         for (int i = 0; i < handlers.length; i++) {
             if(handlers[i] == handler) {
@@ -171,7 +171,7 @@ public final class Protocol {
 
         private final Direction acceptingDirection;
         private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
-        private final List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers;
+        private final List<Pair<? extends PacketDefinition<?>, PacketHandler<?>>> definitionsAndHandlers;
 
         private boolean frozen;
         private Protocol result;
@@ -182,13 +182,13 @@ public final class Protocol {
             this.definitionsAndHandlers = new ArrayList<>();
         }
 
-        public <Instance extends Record, Definition extends PacketDefinition<Instance>> Builder add(Definition definition) {
+        public <Instance extends Record> Builder add(PacketDefinition<Instance> definition) {
             if(frozen) throw new IllegalStateException("builder instance is frozen");
             definitionsAndHandlers.add(new Pair<>(definition, PacketHandler.blank()));
             return this;
         }
 
-        public <Instance extends Record, Definition extends PacketDefinition<Instance>> Builder add(Definition definition, PacketHandler<Instance, Definition> handler) {
+        public <Instance extends Record> Builder add(PacketDefinition<Instance> definition, PacketHandler<Instance> handler) {
             if(frozen) throw new IllegalStateException("builder instance is frozen");
             definitionsAndHandlers.add(new Pair<>(definition, handler));
             return this;
