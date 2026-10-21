@@ -21,6 +21,7 @@ public final class BuiltInProtocol {
             PushUserPropertyPacket.DEFINITION,
             UserTrackingPacket.DEFINITION,
             RequestUserDataPacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.server.CompleteIdentifierPacket.DEFINITION,
             PlayerOnlineStatusPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.BroadcastPlayerMessagePacket.DEFINITION,
             // transfer private player message
@@ -28,6 +29,7 @@ public final class BuiltInProtocol {
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.client.CompleteIdentifierPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.client.BroadcastPlayerMessagePacket.DEFINITION
             // transfer private player message
             // transfer private player message response
