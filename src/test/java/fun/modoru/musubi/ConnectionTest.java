@@ -1,9 +1,10 @@
-package fun.modoru.musubi.server;
+package fun.modoru.musubi;
 
-import fun.modoru.musubi.Protocol;
 import fun.modoru.musubi.client.CloseReason;
 import fun.modoru.musubi.client.MusubiClient;
 import fun.modoru.musubi.client.QuicClientSocket;
+import fun.modoru.musubi.server.MusubiServer;
+import fun.modoru.musubi.server.QuicServerSocket;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.quic.QuicSslContextBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +16,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-public class ServerTest {
+public class ConnectionTest {
 
     @SuppressWarnings("deprecation")
     @Test

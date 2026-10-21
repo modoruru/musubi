@@ -24,7 +24,7 @@ public final class Protocol {
     private final PacketDefinition<?>[] definitions;
     private final PacketHandler<?, ?>[] handlers;
 
-    private Protocol(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
+    Protocol(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler, List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers) {
         this.flow = flow;
         this.serverAuthorizationHandler = serverAuthorizationHandler;
 
@@ -166,19 +166,25 @@ public final class Protocol {
 
     public record ReadPacket(int packetId, PacketDefinition<?> definition, PacketInstance packetInstance) {}
 
-    public static final class Builder implements AutoCloseable {
+    public static final class Builder {
 
-        private final Flow flow;
+        private final Flow acceptingFlow;
         private final @Nullable ServerAuthorizationHandler serverAuthorizationHandler;
         private final List<Pair<? extends PacketDefinition<?>, PacketHandler<?, ?>>> definitionsAndHandlers;
 
         private boolean frozen;
         private Protocol result;
 
-        public Builder(Flow flow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler) {
-            this.flow = flow;
+        public Builder(Flow acceptingFlow, @Nullable ServerAuthorizationHandler serverAuthorizationHandler) {
+            this.acceptingFlow = acceptingFlow;
             this.serverAuthorizationHandler = serverAuthorizationHandler;
             this.definitionsAndHandlers = new ArrayList<>();
+        }
+
+        public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> Builder add(Definition definition) {
+            if(frozen) throw new IllegalStateException("builder instance is frozen");
+            definitionsAndHandlers.add(new Pair<>(definition, PacketHandler.blank()));
+            return this;
         }
 
         public <Instance extends Record & PacketInstance, Definition extends PacketDefinition<Instance>> Builder add(Definition definition, PacketHandler<Instance, Definition> handler) {
@@ -189,15 +195,9 @@ public final class Protocol {
 
         public Protocol build() {
             if(frozen) return result;
-            close();
-            return result;
-        }
-
-        @Override
-        public void close() {
-            if(frozen) return;
             frozen = true;
-            result = new Protocol(flow, serverAuthorizationHandler, definitionsAndHandlers);
+            result = new Protocol(acceptingFlow, serverAuthorizationHandler, definitionsAndHandlers);
+            return result;
         }
 
     }

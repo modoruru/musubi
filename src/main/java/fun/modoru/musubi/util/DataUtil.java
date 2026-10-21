@@ -7,6 +7,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -20,6 +22,10 @@ public final class DataUtil {
 
     public static <E1, E2, E3> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, E1 e1, E2 e2, E3 e3) {
         return e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3);
+    }
+
+    public static <E1, E2, E3, E4> ByteBuf writeSequentially(ByteBuf output, Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer, E1 e1, E2 e2, E3 e3, E4 e4) {
+        return e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4);
     }
 
     public static boolean hasContinuationBit(byte in) {
@@ -145,6 +151,31 @@ public final class DataUtil {
 
     public static ByteBuf writeUtf8(ByteBuf output, String utf8) {
         return writeString(output, StandardCharsets.UTF_8, utf8);
+    }
+
+    public static <Element extends Enum<Element>> Element readEnum(ByteBuf input, Class<Element> clazz) {
+        return clazz.getEnumConstants()[input.readInt()];
+    }
+
+    public static <Element extends Enum<Element>> ByteBuf writeEnum(ByteBuf output, Element element) {
+        return output.writeInt(element.ordinal());
+    }
+
+    public static <Element> Set<Element> readSet(ByteBuf input, Reader<Element> elementReader) {
+        int size = readVarInt(input);
+        Set<Element> set = new HashSet<>();
+        for (int i = 0; i < size; i++) {
+            set.add(elementReader.read(input));
+        }
+        return set;
+    }
+
+    public static <Element> ByteBuf writeSet(ByteBuf output, Writer<Element> elementWriter, Set<Element> set) {
+        writeVarInt(output, set.size());
+        for (Element element : set) {
+            output = elementWriter.write(output, element);
+        }
+        return output;
     }
 
 }
