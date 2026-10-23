@@ -6,13 +6,17 @@ import fun.modoru.musubi.util.DataUtil;
 
 import java.util.UUID;
 
-public record RequestUserDataPacket(UUID uuid) {
+public record RequestUserDataPacket(UUID requestUuid, UUID uuid) {
 
     public static final PacketDefinition<RequestUserDataPacket> DEFINITION = new PacketDefinition<>(
             Direction.SERVER,
             Integer.MIN_VALUE,
-            input -> new RequestUserDataPacket(DataUtil.readUuid(input)),
-            (output, element) -> DataUtil.writeUuid(output, element.uuid)
+            input -> new RequestUserDataPacket(DataUtil.readUuid(input), DataUtil.readUuid(input)),
+            (output, element) -> DataUtil.writeSequentially(
+                    output,
+                    DataUtil::writeUuid, DataUtil::writeUuid,
+                    element.requestUuid, element.uuid
+            )
     );
 
 }

@@ -1,5 +1,6 @@
 package fun.modoru.musubi;
 
+import fun.modoru.musubi.builtin.packets.client.RequestFailedPacket;
 import fun.modoru.musubi.builtin.packets.client.TrackingUpdatePropertyPacket;
 import fun.modoru.musubi.builtin.packets.client.UserDataPacket;
 import fun.modoru.musubi.builtin.packets.server.*;
@@ -21,7 +22,7 @@ public final class BuiltInProtocol {
             PushUserPropertyPacket.DEFINITION,
             UserTrackingPacket.DEFINITION,
             RequestUserDataPacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.server.CompleteIdentifierPacket.DEFINITION,
+            RequestCompleteIdentifierPacket.DEFINITION,
             PlayerOnlineStatusPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.BroadcastPlayerMessagePacket.DEFINITION,
             // transfer private player message
@@ -30,6 +31,7 @@ public final class BuiltInProtocol {
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.client.CompleteIdentifierPacket.DEFINITION,
+            RequestFailedPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.client.BroadcastPlayerMessagePacket.DEFINITION
             // transfer private player message
             // transfer private player message response
