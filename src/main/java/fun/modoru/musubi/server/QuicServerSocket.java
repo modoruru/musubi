@@ -21,8 +21,8 @@ public class QuicServerSocket {
     protected final int port;
     public final AtomicBoolean running;
 
-    public Channel channel;
-    public MusubiServer musubiServer;
+    public volatile Channel channel;
+    public volatile MusubiServer musubiServer;
 
     public QuicServerSocket(QuicSslContext sslContext, MultiThreadIoEventLoopGroup eventLoopGroup, int port) {
         this.sslContext = sslContext;
