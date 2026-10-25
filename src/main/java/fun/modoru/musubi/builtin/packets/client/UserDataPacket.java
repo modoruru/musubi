@@ -15,6 +15,7 @@ public record UserDataPacket(Identifier identifier, Object[] propertiesValues) {
             input -> {
                 Object[] elements = new Object[DataUtil.readVarInt(input)];
                 for (int i = 0; i < elements.length; i++) {
+                    if(input.readBoolean()) continue;
                     elements[i] = UserDefinition.byId(i).codec().read(input);
                 }
                 return elements;
@@ -22,6 +23,12 @@ public record UserDataPacket(Identifier identifier, Object[] propertiesValues) {
             (output, elements) -> {
                 DataUtil.writeVarInt(output, elements.length);
                 for (int i = 0; i < elements.length; i++) {
+                    if(elements[i] == null) {
+                        output.writeBoolean(true);
+                        continue;
+                    }
+
+                    output.writeBoolean(false);
                     ((UserProperty<Object>) UserDefinition.byId(i)).codec().write(output, elements[i]);
                 }
                 return output;

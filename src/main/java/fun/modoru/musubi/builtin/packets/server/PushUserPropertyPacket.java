@@ -16,13 +16,18 @@ public record PushUserPropertyPacket(UUID uuid, int propertyId, Object propertyV
             input -> {
                 UUID uuid = DataUtil.readUuid(input);
                 int index = DataUtil.readVarInt(input);
-                return new PushUserPropertyPacket(uuid, index, UserDefinition.byId(index).codec().read(input));
+                boolean null0 = input.readBoolean();
+                return new PushUserPropertyPacket(uuid, index, null0 ? null : UserDefinition.byId(index).codec().read(input));
             },
-            (output, element) -> DataUtil.writeSequentially(
-                    output,
-                    DataUtil::writeUuid, DataUtil::writeVarInt, ((UserProperty<Object>) UserDefinition.byId(element.propertyId)).codec(),
-                    element.uuid, element.propertyId, element.propertyValue
-            )
+            (output, element) -> {
+                DataUtil.writeUuid(output, element.uuid);
+                DataUtil.writeVarInt(output, element.propertyId);
+                boolean null0 = element.propertyValue == null;
+                output.writeBoolean(null0);
+                if(!null0) ((UserProperty<Object>) UserDefinition.byId(element.propertyId)).codec().write(output, element.propertyValue);
+
+                return output;
+            }
     );
 
 }

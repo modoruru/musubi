@@ -5,6 +5,7 @@ import fun.modoru.musubi.data.Codec;
 import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.util.DataUtil;
+import io.netty.buffer.ByteBuf;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -17,19 +18,19 @@ public final class UserDefinition {
     private static final AtomicInteger GLOBAL_INDEX = new AtomicInteger();
     private static final Map<Integer, UserProperty<?>> ID_TO_PROPERTY = new HashMap<>();
 
-    public static final UserProperty<Identifier> identifier = define(Identifier.CODEC);
+    public static final UserProperty<Long> creationDate = define(new FixedCodec<>(ByteBuf::readLong, ByteBuf::writeLong));
 
-    public static final UserProperty<@Nullable Subscription> subscription = defineNullable(Subscription.CODEC);
-    public static final UserProperty<@Nullable TeamRole> teamRole = defineNullable(TeamRole.CODEC);
+    public static final UserProperty<Subscription> subscription = define(Subscription.CODEC);
+    public static final UserProperty<TeamRole> teamRole = define(TeamRole.CODEC);
 
-    public static final UserProperty<@Nullable Punishment>
-            ban = defineNullable(Punishment.CODEC),
-            mute = defineNullable(Punishment.CODEC);
+    public static final UserProperty<Punishment>
+            ban = define(Punishment.CODEC),
+            mute = define(Punishment.CODEC);
 
-    public static final UserProperty<@Nullable UUID> groupUuid = defineNullable(Codecs.UUID);
+    public static final UserProperty<UUID> groupUuid = define(Codecs.UUID);
 
-    public static final UserProperty<@Nullable AcquiredNameColor> currentNameColor = defineNullable(AcquiredNameColor.CODEC);
-    public static final UserProperty<@Nullable Particle> particle = defineNullable(Particle.CODEC);
+    public static final UserProperty<AcquiredNameColor> currentNameColor = define(AcquiredNameColor.CODEC);
+    public static final UserProperty<Particle> particle = define(Particle.CODEC);
 
     private UserDefinition() {}
 
@@ -47,13 +48,6 @@ public final class UserDefinition {
             result[i] = ID_TO_PROPERTY.get(i);
         }
         return result;
-    }
-
-    private static <E> UserProperty<E> defineNullable(Codec<E> nonNullable) {
-        return define(new FixedCodec<>(
-                input -> DataUtil.readNullable(input, nonNullable),
-                (output, element) -> DataUtil.writeNullable(output, nonNullable, element)
-        ));
     }
 
     private static <E> UserProperty<E> define(Codec<E> codec) {
