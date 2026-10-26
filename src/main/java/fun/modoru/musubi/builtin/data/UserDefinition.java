@@ -18,7 +18,13 @@ public final class UserDefinition {
     private static final AtomicInteger GLOBAL_INDEX = new AtomicInteger();
     private static final Map<Integer, UserProperty<?>> ID_TO_PROPERTY = new HashMap<>();
 
-    public static final UserProperty<Long> creationDate = define(new FixedCodec<>(ByteBuf::readLong, ByteBuf::writeLong));
+    public static final Codec<Long> LONG_CODEC = new FixedCodec<>(ByteBuf::readLong, ByteBuf::writeLong);
+
+    public static final UserProperty<Long>
+            creationDate = define(LONG_CODEC),
+            discordId = define(LONG_CODEC);
+
+    public static final UserProperty<String> lastKnownUsername = define(new FixedCodec<>(DataUtil::readUtf8, DataUtil::writeUtf8));
 
     public static final UserProperty<Subscription> subscription = define(Subscription.CODEC);
     public static final UserProperty<TeamRole> teamRole = define(TeamRole.CODEC);

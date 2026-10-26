@@ -7,12 +7,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public final class DataUtil {
+
+    public static final Writer<Enum<?>> ENUM_WRITER = (output, element) -> output.writeInt(element.ordinal());
 
     private DataUtil() {}
 
@@ -54,6 +55,14 @@ public final class DataUtil {
             E1 e1, E2 e2, E3 e3, E4 e4, E5 e5, E6 e6
     ) {
         return e6Writer.write(e5Writer.write(e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4), e5), e6);
+    }
+
+    public static <E1, E2, E3, E4, E5, E6, E7> ByteBuf writeSequentially(
+            ByteBuf output,
+            Writer<E1> e1Writer, Writer<E2> e2Writer, Writer<E3> e3Writer, Writer<E4> e4Writer, Writer<E5> e5Writer, Writer<E6> e6Writer, Writer<E7> e7Writer,
+            E1 e1, E2 e2, E3 e3, E4 e4, E5 e5, E6 e6, E7 e7
+    ) {
+        return e7Writer.write(e6Writer.write(e5Writer.write(e4Writer.write(e3Writer.write(e2Writer.write(e1Writer.write(output, e1), e2), e3), e4), e5), e6), e7);
     }
 
     public static boolean hasContinuationBit(byte in) {
@@ -189,21 +198,38 @@ public final class DataUtil {
         return output.writeInt(element.ordinal());
     }
 
-    public static <Element> Set<Element> readSet(ByteBuf input, Reader<Element> elementReader) {
-        int size = readVarInt(input);
-        Set<Element> set = new HashSet<>();
-        for (int i = 0; i < size; i++) {
-            set.add(elementReader.read(input));
-        }
-        return set;
+    public static <Element extends Enum<Element>> Writer<Element> enumWriter() {
+        return (Writer<Element>) ENUM_WRITER;
     }
 
-    public static <Element> ByteBuf writeSet(ByteBuf output, Writer<Element> elementWriter, Set<Element> set) {
-        writeVarInt(output, set.size());
-        for (Element element : set) {
+    public static <Element, AbstractCollection extends Collection<Element>> AbstractCollection readCollection(
+            ByteBuf input,
+            Function<Integer, AbstractCollection> collectionConstructor,
+            BiConsumer<AbstractCollection, Element> addFunction,
+            Reader<Element> elementReader
+    ) {
+        int size = readVarInt(input);
+        AbstractCollection collection = collectionConstructor.apply(size);
+        for (int i = 0; i < size; i++) {
+            addFunction.accept(collection, elementReader.read(input));
+        }
+        return collection;
+    }
+
+    public static <Element> ByteBuf writeCollection(ByteBuf output, Writer<Element> elementWriter, Collection<Element> collection) {
+        writeVarInt(output, collection.size());
+        for (Element element : collection) {
             output = elementWriter.write(output, element);
         }
         return output;
+    }
+
+    public static <Element> List<Element> readList(ByteBuf input, Reader<Element> elementReader) {
+        return readCollection(input, ArrayList::new, List::add, elementReader);
+    }
+
+    public static <Element> Set<Element> readSet(ByteBuf input, Reader<Element> elementReader) {
+        return readCollection(input, HashSet::new, Set::add, elementReader);
     }
 
 }

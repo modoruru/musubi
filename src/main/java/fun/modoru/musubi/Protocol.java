@@ -144,11 +144,12 @@ public final class Protocol {
         tryToHandle(connection, readPacket(input));
     }
 
-    public void tryToHandle(MusubiConnection connection, ReadPacket readPacket) {
+    public void tryToHandle(MusubiConnection connection, ReadPacket readPacket) throws PacketProcessingException {
         try {
-            handlers[readPacket.packetId].handle(connection, cast(readPacket.definition), cast(readPacket.packetInstance));
+            handlers[readPacket.packetId].handle(connection, cast(readPacket.packetInstance));
         }
         catch (Throwable throwable) {
+            if(throwable instanceof PacketProcessingException packetProcessingException) throw packetProcessingException;
             throw new PacketProcessingException(throwable);
         }
     }

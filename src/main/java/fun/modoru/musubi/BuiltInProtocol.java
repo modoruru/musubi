@@ -3,6 +3,7 @@ package fun.modoru.musubi;
 import fun.modoru.musubi.builtin.packets.client.RequestFailedPacket;
 import fun.modoru.musubi.builtin.packets.client.TrackingUpdatePropertyPacket;
 import fun.modoru.musubi.builtin.packets.client.UserDataPacket;
+import fun.modoru.musubi.builtin.packets.client.UserWarningsPacket;
 import fun.modoru.musubi.builtin.packets.server.*;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
@@ -25,16 +26,19 @@ public final class BuiltInProtocol {
             RequestCompleteIdentifierPacket.DEFINITION,
             PlayerOnlineStatusPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.BroadcastPlayerMessagePacket.DEFINITION,
-            // transfer private player message
-            // transfer private player message response
+            AddUserWarningPacket.DEFINITION,
+            RequestUserWarningsPacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.server.TransferPrivatePlayerMessagePacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.server.TransferPrivatePlayerMessageResponsePacket.DEFINITION,
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.client.CompleteIdentifierPacket.DEFINITION,
             RequestFailedPacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.client.BroadcastPlayerMessagePacket.DEFINITION
-            // transfer private player message
-            // transfer private player message response
+            fun.modoru.musubi.builtin.packets.client.BroadcastPlayerMessagePacket.DEFINITION,
+            UserWarningsPacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessagePacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessageResponsePacket.DEFINITION
     );
 
     private BuiltInProtocol() {}
@@ -62,7 +66,7 @@ public final class BuiltInProtocol {
             this.definitionsToHandlers = new HashMap<>();
         }
 
-        public <Instance extends Record> Builder defineHandler(PacketDefinition<Instance>  definition, PacketHandler<Instance> handler) {
+        public <Instance extends Record> Builder defineHandler(PacketDefinition<Instance> definition, PacketHandler<Instance> handler) {
             if(acceptingDirection.opposite() == definition.direction())
                 throw new IllegalArgumentException(String.format("You're trying to define handler for packet that has direction \"%s\", but this builder only accepts handlers for \"%s\".", definition.direction().name(), acceptingDirection));
             if(!DEFINITIONS.contains(definition))
