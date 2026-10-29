@@ -13,7 +13,31 @@ import java.util.OptionalInt;
 
 public enum NameColor {
 
-    ;
+    // Flat colors
+    ORANGE(0xf0913d),
+    GOLD(0xf0b83f),
+    YELLOW(0xefe44a),
+    LIME_GREEN(0xa2f359),
+    GREEN(0x5de35e),
+    TURQUOISE(0x17dc94),
+    AQUA(0x2bccc4),
+    LIGHT_BLUE(0x4ceaed),
+    BLUE(0x4889e7),
+    INDIGO(0x4b50ec),
+    VIOLET(0x9b4cf3),
+    PURPLE(0xc54cf3),
+    FUCHSIA(0xf34cf2),
+    PINK(0xf13fb9),
+    MAGENTA(0xef3073),
+
+    // Gradients
+    BLACK_AND_WHITE(0xffffff, 0xa0a19f),
+    SHINING_GOLD(0xefe44a, 0xf0913d),
+    FOLIAGE(0xa2f359, 0x5de35e),
+    MINT(0x2bccc4, 0x17dc94),
+    LAKE(0x4ceaed, 0x4889e7),
+    OLD_MODORU(0x9b4cf3, 0x4b50ec),
+    SOFT_PINK(0xf34cf2, 0xef3073);
 
     public static final Codec<NameColor> CODEC = Codecs.enumCodec(NameColor.class);
     private static final Map<String, NameColor> BY_ID = new HashMap<>();
