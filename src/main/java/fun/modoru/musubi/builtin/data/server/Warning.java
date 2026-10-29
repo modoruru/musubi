@@ -1,4 +1,4 @@
-package fun.modoru.musubi.builtin.data.user;
+package fun.modoru.musubi.builtin.data.server;
 
 import fun.modoru.musubi.data.Codec;
 import fun.modoru.musubi.data.FixedCodec;

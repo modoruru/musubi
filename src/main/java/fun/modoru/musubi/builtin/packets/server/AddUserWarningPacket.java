@@ -1,6 +1,6 @@
 package fun.modoru.musubi.builtin.packets.server;
 
-import fun.modoru.musubi.builtin.data.user.Warning;
+import fun.modoru.musubi.builtin.data.server.Warning;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;

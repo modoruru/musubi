@@ -1,5 +1,6 @@
 package fun.modoru.musubi.builtin.packets.client;
 
+import fun.modoru.musubi.builtin.AbsurdUtil;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -12,11 +13,7 @@ public record CompleteIdentifierPacket(UUID uuid, UUID gameUuid) {
             Direction.CLIENT,
             Integer.MIN_VALUE,
             input -> new CompleteIdentifierPacket(DataUtil.readUuid(input), DataUtil.readUuid(input)),
-            (output, element) -> DataUtil.writeSequentially(
-                    output,
-                    DataUtil::writeUuid, DataUtil::writeUuid,
-                    element.uuid, element.gameUuid
-            )
+            (output, element) -> AbsurdUtil.writeTwoUuids(output, element.uuid, element.gameUuid)
     );
 
 }

@@ -1,5 +1,6 @@
 package fun.modoru.musubi.builtin.packets.server;
 
+import fun.modoru.musubi.builtin.packets.RequestPacket;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -7,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-public record RequestCompleteIdentifierPacket(UUID requestUuid, @Nullable UUID uuid, @Nullable UUID gameUuid, @Nullable String gameName) {
+public record RequestCompleteIdentifierPacket(UUID requestUuid, @Nullable UUID uuid, @Nullable UUID gameUuid, @Nullable String gameName) implements RequestPacket {
 
     public static final PacketDefinition<RequestCompleteIdentifierPacket> DEFINITION = new PacketDefinition<>(
             Direction.SERVER,

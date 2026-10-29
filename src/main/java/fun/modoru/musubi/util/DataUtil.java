@@ -224,6 +224,10 @@ public final class DataUtil {
         return output;
     }
 
+    public static <Element> Writer<Collection<Element>> collectionWriter(Writer<Element> elementWriter) {
+        return (output, element) -> writeCollection(output, elementWriter, element);
+    }
+
     public static <Element> List<Element> readList(ByteBuf input, Reader<Element> elementReader) {
         return readCollection(input, ArrayList::new, List::add, elementReader);
     }

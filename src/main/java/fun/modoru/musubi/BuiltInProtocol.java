@@ -1,9 +1,6 @@
 package fun.modoru.musubi;
 
-import fun.modoru.musubi.builtin.packets.client.RequestFailedPacket;
-import fun.modoru.musubi.builtin.packets.client.TrackingUpdatePropertyPacket;
-import fun.modoru.musubi.builtin.packets.client.UserDataPacket;
-import fun.modoru.musubi.builtin.packets.client.UserWarningsPacket;
+import fun.modoru.musubi.builtin.packets.client.*;
 import fun.modoru.musubi.builtin.packets.server.*;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
@@ -21,24 +18,30 @@ public final class BuiltInProtocol {
 
     public static final List<? extends PacketDefinition<?>> DEFINITIONS = List.of(
             PushUserPropertyPacket.DEFINITION,
-            UserTrackingPacket.DEFINITION,
+            UserTrackingStatusPacket.DEFINITION,
             RequestUserDataPacket.DEFINITION,
             RequestCompleteIdentifierPacket.DEFINITION,
             PlayerOnlineStatusPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.BroadcastPlayerMessagePacket.DEFINITION,
             AddUserWarningPacket.DEFINITION,
             RequestUserWarningsPacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.server.TransferPrivatePlayerMessagePacket.DEFINITION,
+            TransferPrivatePlayerMessageRequestPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.TransferPrivatePlayerMessageResponsePacket.DEFINITION,
+            DeleteGroupPacket.DEFINITION,
+            EditGroupPacket.DEFINITION,
+            RequestGroupPacket.DEFINITION,
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.client.CompleteIdentifierPacket.DEFINITION,
+            CompleteIdentifierPacket.DEFINITION,
             RequestFailedPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.client.BroadcastPlayerMessagePacket.DEFINITION,
             UserWarningsPacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessagePacket.DEFINITION,
-            fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessageResponsePacket.DEFINITION
+            TransferPrivatePlayerMessagePacket.DEFINITION,
+            fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessageResponsePacket.DEFINITION,
+            ConfirmationPacket.DEFINITION,
+            GroupPacket.DEFINITION,
+            TrackingUpdateGroupPacket.DEFINITION
     );
 
     private BuiltInProtocol() {}
