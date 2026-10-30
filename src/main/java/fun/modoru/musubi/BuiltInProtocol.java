@@ -27,6 +27,7 @@ public final class BuiltInProtocol {
             RequestUserWarningsPacket.DEFINITION,
             TransferPrivatePlayerMessageRequestPacket.DEFINITION,
             fun.modoru.musubi.builtin.packets.server.TransferPrivatePlayerMessageResponsePacket.DEFINITION,
+            CreateGroupRequestPacket.DEFINITION,
             DeleteGroupPacket.DEFINITION,
             EditGroupPacket.DEFINITION,
             RequestGroupPacket.DEFINITION,
