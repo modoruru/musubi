@@ -47,7 +47,7 @@ public final class UserDefinition {
             globalChatEnabled = define(Codecs.BOOLEAN, true),
             receiveGroupInvitations = define(Codecs.BOOLEAN, true);
     public static final UserProperty<ChatChannel> preferredChatChannel = define(ChatChannel.CODEC, ChatChannel.LOCAL);
-    public static final UserProperty<Theme> theme = define(Theme.CODEC); // themes are coming to modoru :)
+    public static final UserProperty<Theme> theme = define(Theme.CODEC, Theme.DEFAULT); // themes are coming to modoru :)
 
     // Active incoming invites
     public static final UserProperty<List<GroupInvite>> activeGroupInvites = define(Codecs.listCodec(GroupInvite.CODEC));
