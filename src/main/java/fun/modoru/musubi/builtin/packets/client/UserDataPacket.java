@@ -36,7 +36,8 @@ public record UserDataPacket(Identifier identifier, Object[] propertiesValues) {
     );
 
     public static final PacketDefinition<UserDataPacket> DEFINITION = new PacketDefinition<>(
-            Direction.CLIENT, Integer.MIN_VALUE,
+            Direction.CLIENT,
+            UserDefinition.VERSION,
             input -> new UserDataPacket(Identifier.CODEC.read(input), USER_PROPERTIES_VALUES_CODEC.read(input)),
             (output, element) -> {
                 Identifier.CODEC.write(output, element.identifier);

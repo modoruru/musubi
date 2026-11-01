@@ -12,7 +12,7 @@ public record PushUserPropertyPacket(UUID uuid, int propertyId, Object propertyV
 
     public static final PacketDefinition<PushUserPropertyPacket> DEFINITION = new PacketDefinition<>(
             Direction.SERVER,
-            Integer.MIN_VALUE,
+            UserDefinition.VERSION,
             input -> {
                 UUID uuid = DataUtil.readUuid(input);
                 int index = DataUtil.readVarInt(input);
