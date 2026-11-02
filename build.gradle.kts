@@ -13,6 +13,7 @@ java {
 }
 
 dependencies {
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final")
     implementation("io.netty:netty-codec-native-quic:4.2.19.Final:linux-x86_64")
     implementation("io.netty:netty-codec-native-quic:4.2.19.Final:windows-x86_64")
 
