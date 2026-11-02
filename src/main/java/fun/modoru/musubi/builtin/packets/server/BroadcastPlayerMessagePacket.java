@@ -1,6 +1,6 @@
 package fun.modoru.musubi.builtin.packets.server;
 
-import fun.modoru.musubi.builtin.data.user.ChatChannel;
+import fun.modoru.musubi.builtin.data.misc.ChatChannel;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;

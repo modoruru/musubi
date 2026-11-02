@@ -1,5 +1,6 @@
 package fun.modoru.musubi.builtin.data;
 
+import fun.modoru.musubi.builtin.data.misc.ChatChannel;
 import fun.modoru.musubi.builtin.data.server.GroupInvite;
 import fun.modoru.musubi.builtin.data.user.*;
 import fun.modoru.musubi.data.Codec;
