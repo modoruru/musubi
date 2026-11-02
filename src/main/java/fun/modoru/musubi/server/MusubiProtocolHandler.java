@@ -43,6 +43,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         // Client's authorized and sent us its protocol so we can transfer packet to packet's handler safely
         if(authorizationState && agreedOnProtocol) {
             try {
+                System.out.println("Trying to handle " + readPacket.packetInstance().getClass().getName());
                 connection.protocol.tryToHandle(connection, readPacket);
             }
             catch (Throwable throwable) {

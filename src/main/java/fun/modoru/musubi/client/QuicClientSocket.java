@@ -7,7 +7,6 @@ import io.netty.handler.codec.quic.*;
 import org.jspecify.annotations.Nullable;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 public class QuicClientSocket implements AutoCloseable {
 
@@ -27,7 +26,6 @@ public class QuicClientSocket implements AutoCloseable {
     public QuicChannel connect() throws InterruptedException {
         ChannelHandler codec = new QuicClientCodecBuilder()
                 .sslContext(sslContext)
-                .maxIdleTimeout(30_000, TimeUnit.MILLISECONDS)
                 .initialMaxData(10_000_000)
                 .initialMaxStreamDataBidirectionalLocal(1_000_000)
                 .initialMaxStreamDataBidirectionalRemote(1_000_000)

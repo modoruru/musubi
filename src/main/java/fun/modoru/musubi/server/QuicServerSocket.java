@@ -5,11 +5,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.codec.quic.*;
+import io.netty.handler.codec.quic.QuicServerCodecBuilder;
+import io.netty.handler.codec.quic.QuicSslContext;
+import io.netty.handler.codec.quic.QuicStreamChannel;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class QuicServerSocket {
@@ -40,7 +41,6 @@ public class QuicServerSocket {
                     .handler(
                             new QuicServerCodecBuilder()
                                     .sslContext(sslContext)
-                                    .maxIdleTimeout(30, TimeUnit.SECONDS)
                                     .initialMaxData(10000000)
                                     .initialMaxStreamDataBidirectionalLocal(1000000)
                                     .initialMaxStreamDataBidirectionalRemote(1000000)
