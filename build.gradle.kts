@@ -12,7 +12,11 @@ java {
 }
 
 dependencies {
-    implementation("io.netty:netty-all:4.2.19.Final")
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:linux-x86_64")
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:linux-aarch_64")
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:osx-x86_64")
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:osx-aarch_64")
+    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:windows-x86_64")
     implementation("org.jspecify:jspecify:1.0.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
