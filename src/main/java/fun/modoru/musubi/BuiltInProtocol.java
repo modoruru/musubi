@@ -31,6 +31,7 @@ public final class BuiltInProtocol {
             DeleteGroupPacket.DEFINITION,
             EditGroupPacket.DEFINITION,
             RequestGroupPacket.DEFINITION,
+            CreateDiscordLinkCodePacket.DEFINITION,
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
