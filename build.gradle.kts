@@ -32,7 +32,15 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
 
-        relocate("io.netty", "fun.modoru.musubi.internal.netty")
+        relocate("io.netty", "fun.modoru.musubi.internal.io.netty")
+
+        filesMatching("META-INF/native/libnetty_quiche42_linux_x86_64.so") {
+            name = "libfun_modoru_musubi_internal_netty_quiche42_linux_x86_64.so"
+        }
+
+        filesMatching("META-INF/native/netty_quiche42_windows_x86_64.dll") {
+            name = "fun_modoru_musubi_internal_netty_quiche42_windows_x86_64.dll"
+        }
     }
 
     build {
