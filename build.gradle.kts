@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     id("maven-publish")
+    id("com.gradleup.shadow").version("9.6.1")
 }
 
 repositories {
@@ -13,10 +14,8 @@ java {
 
 dependencies {
     implementation("io.netty:netty-codec-native-quic:4.2.19.Final:linux-x86_64")
-    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:linux-aarch_64")
-    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:osx-x86_64")
-    implementation("io.netty:netty-codec-native-quic:4.2.19.Final:osx-aarch_64")
     implementation("io.netty:netty-codec-native-quic:4.2.19.Final:windows-x86_64")
+
     implementation("org.jspecify:jspecify:1.0.0")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -28,6 +27,16 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
+    }
+
+    shadowJar {
+        archiveClassifier.set("")
+
+        relocate("io.netty", "fun.modoru.musubi.internal.netty")
+    }
+
+    build {
+        dependsOn(shadowJar)
     }
 }
 
@@ -51,7 +60,7 @@ extensions.configure<PublishingExtension> {
 
     publications {
         create<MavenPublication>("maven") {
-            from(components["java"])
+            artifact(tasks.shadowJar)
             artifact(sourcesJar.get())
 
             group = "fun.modoru"
