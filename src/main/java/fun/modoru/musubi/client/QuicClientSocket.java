@@ -1,5 +1,6 @@
 package fun.modoru.musubi.client;
 
+import fun.modoru.musubi.server.QuicServerSocket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -9,6 +10,8 @@ import org.jspecify.annotations.Nullable;
 import java.net.InetSocketAddress;
 
 public class QuicClientSocket implements AutoCloseable {
+
+    public static final String PROTOCOL_NAME = QuicServerSocket.PROTOCOL_NAME;
 
     protected final QuicSslContext sslContext;
     protected final MultiThreadIoEventLoopGroup eventLoopGroup;

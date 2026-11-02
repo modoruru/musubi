@@ -7,15 +7,16 @@ import fun.modoru.musubi.server.MusubiServer;
 import fun.modoru.musubi.server.QuicServerSocket;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.quic.QuicSslContextBuilder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import io.netty.pkitesting.CertificateBuilder;
 import io.netty.pkitesting.X509Bundle;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 public class ConnectionTest {
 
     @SuppressWarnings("deprecation")
@@ -59,7 +60,7 @@ public class ConnectionTest {
                 new QuicClientSocket(
                         QuicSslContextBuilder.forClient()
                                 .trustManager(ca.getCertificate())
-                                .applicationProtocols(QuicServerSocket.PROTOCOL_NAME)
+                                .applicationProtocols(QuicClientSocket.PROTOCOL_NAME)
                                 .endpointIdentificationAlgorithm(null)
                                 .build(),
                         new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor),

@@ -69,7 +69,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             case SENT_PROTOCOL -> {
                 if(readPacket.packetInstance() instanceof ProtocolVersionSuccessPacket) {
                     authorizationState = AuthorizationState.DONE;
-                    musubiClient.authorizationFuture.complete(null);
+                    musubiClient.authorizationSucceeded();
                     return;
                 }
 

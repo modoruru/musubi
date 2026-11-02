@@ -11,50 +11,89 @@ import java.util.concurrent.ExecutionException;
 
 public class MusubiClient implements AutoCloseable {
 
+    public enum State {
+        DISCONNECTED,
+        CONNECTING,
+        CONNECTED,
+        CLOSED
+    }
+
     protected final Protocol protocol;
     protected final QuicClientSocket quicClientSocket;
     protected final String identifier;
     protected final @Nullable String authorization;
-    protected final CompletableFuture<CloseReason> closeReasonFuture;
-    protected final CompletableFuture<@Nullable Void> authorizationFuture;
 
-    public @Nullable QuicChannel connection;
-    public @Nullable QuicStreamChannel stream;
-    public @Nullable ClientConnection clientConnection;
+    protected volatile State state = State.DISCONNECTED;
 
-    public MusubiClient(Protocol protocol, QuicClientSocket quicClientSocket, String identifier, @Nullable String authorization) {
+    protected volatile @Nullable QuicChannel connection;
+    protected volatile @Nullable QuicStreamChannel stream;
+    protected volatile @Nullable ClientConnection clientConnection;
+
+    protected volatile CompletableFuture<CloseReason> closeReasonFuture = new CompletableFuture<>();
+    protected volatile CompletableFuture<@Nullable Void> authorizationFuture = new CompletableFuture<>();
+
+    public MusubiClient(
+            Protocol protocol,
+            QuicClientSocket quicClientSocket,
+            String identifier,
+            @Nullable String authorization
+    ) {
         this.protocol = protocol;
         this.quicClientSocket = quicClientSocket;
         this.identifier = identifier;
         this.authorization = authorization;
-        this.closeReasonFuture = new CompletableFuture<>();
-        this.authorizationFuture = new CompletableFuture<>();
+    }
+
+    public synchronized void connect() throws InterruptedException {
+        if (state == State.CONNECTING || state == State.CONNECTED) {
+            return;
+        }
+
+        closeReasonFuture = new CompletableFuture<>();
+        authorizationFuture = new CompletableFuture<>();
+
+        connection = null;
+        stream = null;
+        clientConnection = null;
+
+        state = State.CONNECTING;
+
+        try {
+            QuicChannel quicChannel = quicClientSocket.connect();
+            connection = quicChannel;
+            quicChannel.closeFuture().addListener(_ -> finish(CloseReason.undefined()));
+
+            QuicStreamChannel streamChannel = quicClientSocket.openStream(new MusubiProtocolHandler(this));
+            stream = streamChannel;
+            streamChannel.closeFuture().addListener(_ -> finish(CloseReason.undefined()));
+
+            if (state == State.CONNECTING) {
+                state = State.CONNECTED;
+            }
+        }
+        catch (InterruptedException | RuntimeException | Error exception) {
+            finish(CloseReason.exception(exception));
+            throw exception;
+        }
     }
 
     void setMusubiConnection(ClientConnection clientConnection) {
         this.clientConnection = clientConnection;
     }
 
-    void finish(CloseReason reason) {
-        closeReasonFuture.complete(reason);
+    void authorizationSucceeded() {
+        authorizationFuture.complete(null);
     }
 
-    public void connect() throws InterruptedException {
-        try {
-            connection = quicClientSocket.connect();
-            connection.closeFuture().addListener(_ -> finish(CloseReason.undefined()));
-            stream = quicClientSocket.openStream(new MusubiProtocolHandler(this));
-        }
-        catch (Throwable throwable) {
-            finish(CloseReason.exception(throwable));
-            throw throwable;
-        }
+    void finish(CloseReason reason) {
+        if (!closeReasonFuture.complete(reason)) return;
+
+        state = State.CLOSED;
+        authorizationFuture.completeExceptionally(new IllegalStateException("Connection closed before authorization"));
     }
 
     public CloseReason awaitClose() throws InterruptedException, ExecutionException {
-        CloseReason closeReason = closeReasonFuture.get();
-        if(!authorizationFuture.isDone()) authorizationFuture.complete(null);
-        return closeReason;
+        return closeReasonFuture.get();
     }
 
     public void awaitAuthorization() throws InterruptedException, ExecutionException {
@@ -62,20 +101,44 @@ public class MusubiClient implements AutoCloseable {
     }
 
     public boolean connected() {
-        return quicClientSocket.isConnected();
+        QuicChannel current = connection;
+        QuicStreamChannel currentStream = stream;
+
+        return state == State.CONNECTED
+                && current != null
+                && current.isActive()
+                && currentStream != null
+                && currentStream.isActive();
+    }
+
+    public State state() {
+        return state;
     }
 
     public QuicStreamChannel stream() {
-        if (stream == null || !stream.isActive())
+        QuicStreamChannel current = stream;
+
+        if (!connected() || current == null)
             throw new IllegalStateException("musubi client is not connected");
 
-        return stream;
+        return current;
+    }
+
+    public @Nullable ClientConnection clientConnection() {
+        return clientConnection;
     }
 
     public void close(@Nullable String reason) {
+        if (state == State.DISCONNECTED || state == State.CLOSED) {
+            return;
+        }
+
         finish(CloseReason.localClosure());
-        if(clientConnection != null)
-            clientConnection.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(reason));
+
+        ClientConnection current = clientConnection;
+        if (current != null)
+            current.send(ConnectionClosurePacket.SERVER_DEFINITION, new ConnectionClosurePacket(reason));
+
         quicClientSocket.close();
     }
 
@@ -83,5 +146,4 @@ public class MusubiClient implements AutoCloseable {
     public void close() {
         close(null);
     }
-
 }
