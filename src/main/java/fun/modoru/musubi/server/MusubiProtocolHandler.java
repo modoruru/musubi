@@ -6,6 +6,7 @@ import fun.modoru.musubi.packets.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.jspecify.annotations.Nullable;
 
 public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
@@ -14,6 +15,8 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
     private ServerConnection connection;
     private boolean authorizationState;
     private boolean agreedOnProtocol;
+
+    private @Nullable String closureReason;
 
     public MusubiProtocolHandler(MusubiServer musubiServer) {
         this.musubiServer = musubiServer;
@@ -36,6 +39,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
         // We can accept a connection closure packet regardless of the connection's current state.
         if(readPacket.packetInstance() instanceof ConnectionClosurePacket connectionClosurePacket) {
+            closureReason = connectionClosurePacket.reason();
             connection.close();
             return;
         }
@@ -43,7 +47,6 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         // Client's authorized and sent us its protocol so we can transfer packet to packet's handler safely
         if(authorizationState && agreedOnProtocol) {
             try {
-                System.out.println("Trying to handle " + readPacket.packetInstance().getClass().getName());
                 connection.protocol.tryToHandle(connection, readPacket);
             }
             catch (Throwable throwable) {
@@ -99,7 +102,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        musubiServer.onClientDisconnected(connection);
+        musubiServer.onClientDisconnected(connection, closureReason);
         super.channelInactive(ctx);
     }
 

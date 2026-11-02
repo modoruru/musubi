@@ -51,21 +51,17 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
             return;
         }
 
-        System.out.printf("received packet: %s, authorization state: %s\n", readPacket.packetInstance().getClass().getSimpleName(), authorizationState.name());
-
         switch (authorizationState) {
             case AUTHORIZATION_DECLINE, PROTOCOL_DECLINE -> {
                 return;
             }
             case SENT_AUTHORIZATION -> {
                 if(readPacket.packetInstance() instanceof AuthorizationResultPacket authorizationResultPacket && authorizationResultPacket.success()) {
-                    System.out.println("authorized, sending protocol");
                     authorizationState = AuthorizationState.SENT_PROTOCOL;
                     connection.send(ProtocolVersionPacket.DEFINITION, new ProtocolVersionPacket(connection.protocol().protocolVersion()));
                     return;
                 }
 
-                System.out.println("server declined our authorization info, disconnecting");
                 authorizationState = AuthorizationState.AUTHORIZATION_DECLINE;
                 musubiClient.finish(CloseReason.unauthorized());
                 connection.close();
@@ -74,18 +70,15 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
                 if(readPacket.packetInstance() instanceof ProtocolVersionSuccessPacket) {
                     authorizationState = AuthorizationState.DONE;
                     musubiClient.authorizationFuture.complete(null);
-                    System.out.println("authorization complete!");
                     return;
                 }
 
-                System.out.println("server declined our protocol version, disconnecting");
                 authorizationState = AuthorizationState.PROTOCOL_DECLINE;
                 musubiClient.finish(CloseReason.wrongProtocol());
                 connection.close();
             }
         }
 
-        System.out.println("Trying to handle " + readPacket.packetInstance().getClass().getName());
         connection.protocol().tryToHandle(connection, readPacket);
     }
 

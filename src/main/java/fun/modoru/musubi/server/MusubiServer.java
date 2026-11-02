@@ -49,7 +49,7 @@ public class MusubiServer {
         connections.add(connection);
     }
 
-    protected void onClientDisconnected(ServerConnection connection) {
+    protected void onClientDisconnected(ServerConnection connection, @Nullable String reason) {
         connections.remove(connection);
         if(connection.identifier != null) identifiedConnections.remove(connection.identifier);
     }
