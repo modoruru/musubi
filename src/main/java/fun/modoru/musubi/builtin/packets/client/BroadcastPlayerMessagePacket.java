@@ -1,33 +1,34 @@
 package fun.modoru.musubi.builtin.packets.client;
 
-import fun.modoru.musubi.builtin.data.user.Identifier;
+import fun.modoru.musubi.builtin.data.misc.Identifier;
+import fun.modoru.musubi.builtin.data.user.ChatChannel;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
 import io.netty.buffer.ByteBuf;
 
 public record BroadcastPlayerMessagePacket(
-        String originalClient, String chatChannel,
         Identifier senderIdentifier, Object[] senderPropertiesValues,
-        String message, long creationTime
+        String originalClientName, long timeSent,
+        ChatChannel chatChannel, String message
 ) {
 
     public static final PacketDefinition<BroadcastPlayerMessagePacket> DEFINITION = new PacketDefinition<>(
             Direction.CLIENT,
             Integer.MIN_VALUE,
             input -> new BroadcastPlayerMessagePacket(
-                    DataUtil.readUtf8(input), DataUtil.readUtf8(input),
                     Identifier.CODEC.read(input), UserDataPacket.USER_PROPERTIES_VALUES_CODEC.read(input),
-                    DataUtil.readUtf8(input), input.readLong()
+                    DataUtil.readUtf8(input), input.readLong(),
+                    ChatChannel.CODEC.read(input), DataUtil.readUtf8(input)
             ),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUtf8, DataUtil::writeUtf8,
                     Identifier.CODEC, UserDataPacket.USER_PROPERTIES_VALUES_CODEC,
                     DataUtil::writeUtf8, ByteBuf::writeLong,
-                    element.originalClient, element.chatChannel,
+                    ChatChannel.CODEC, DataUtil::writeUtf8,
                     element.senderIdentifier, element.senderPropertiesValues,
-                    element.message, element.creationTime
+                    element.originalClientName, element.timeSent,
+                    element.chatChannel, element.message
             )
     );
 

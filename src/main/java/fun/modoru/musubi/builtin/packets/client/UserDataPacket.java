@@ -2,7 +2,7 @@ package fun.modoru.musubi.builtin.packets.client;
 
 import fun.modoru.musubi.builtin.data.UserDefinition;
 import fun.modoru.musubi.builtin.data.UserProperty;
-import fun.modoru.musubi.builtin.data.user.Identifier;
+import fun.modoru.musubi.builtin.data.misc.Identifier;
 import fun.modoru.musubi.data.Codec;
 import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.packet.Direction;
