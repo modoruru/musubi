@@ -35,8 +35,8 @@ val sourcesJar by tasks.registering(Jar::class) {
 extensions.configure<PublishingExtension> {
     repositories {
         maven {
-            name = "modoruReleases"
-            url = uri("https://repository.modoru.fun/releases")
+            name = "modoruSnapshots"
+            url = uri("https://repository.modoru.fun/snapshots")
 
             credentials {
                 username = System.getenv("MODORU_USERNAME") ?: ""
@@ -52,7 +52,7 @@ extensions.configure<PublishingExtension> {
 
             group = "fun.modoru"
             artifactId = "musubi"
-            version = project.version.toString()
+            version = System.getenv("COMMIT")
         }
     }
 }
