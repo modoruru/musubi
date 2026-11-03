@@ -10,7 +10,6 @@ import fun.modoru.musubi.server.ServerAuthorizationHandler;
 import fun.modoru.musubi.util.DataUtil;
 import fun.modoru.musubi.util.Pair;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import org.jspecify.annotations.Nullable;
 
@@ -130,7 +129,7 @@ public final class Protocol {
     }
 
     public <Instance extends Record, Definition extends PacketDefinition<Instance>> void writeAndFlush(Channel channel, Definition definition, Instance instance) {
-        ByteBuf output = Unpooled.buffer();
+        ByteBuf output = channel.alloc().buffer();
         write(output, definition, instance);
         channel.writeAndFlush(output);
     }

@@ -1,5 +1,7 @@
 package fun.modoru.musubi.server;
 
+import fun.modoru.musubi.peer.MusubiFrameDecoder;
+import fun.modoru.musubi.peer.MusubiFrameEncoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -50,7 +52,10 @@ public class QuicServerSocket {
                                     .streamHandler(new ChannelInitializer<QuicStreamChannel>() {
                                         @Override
                                         protected void initChannel(QuicStreamChannel ch) {
-                                            ch.pipeline().addLast(new MusubiProtocolHandler(musubiServer));
+                                            ch.pipeline()
+                                                    .addLast(new MusubiFrameDecoder())
+                                                    .addLast(new MusubiFrameEncoder())
+                                                    .addLast(new MusubiProtocolHandler(musubiServer));
                                         }
                                     })
                                     .build()
