@@ -1,5 +1,7 @@
 package fun.modoru.musubi.client;
 
+import fun.modoru.musubi.peer.MusubiFrameDecoder;
+import fun.modoru.musubi.peer.MusubiFrameEncoder;
 import fun.modoru.musubi.server.QuicServerSocket;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -58,7 +60,17 @@ public class QuicClientSocket implements AutoCloseable {
             throw new IllegalStateException("Client is not connected");
         }
 
-        return quicChannel.createStream(QuicStreamType.BIDIRECTIONAL, handler).sync().getNow();
+        ChannelHandler pipeline = new ChannelInitializer<QuicStreamChannel>() {
+            @Override
+            protected void initChannel(QuicStreamChannel ch) {
+                ch.pipeline()
+                        .addLast(new MusubiFrameDecoder())
+                        .addLast(new MusubiFrameEncoder())
+                        .addLast(handler);
+            }
+        };
+
+        return quicChannel.createStream(QuicStreamType.BIDIRECTIONAL, pipeline).sync().getNow();
     }
 
     public boolean isConnected() {
