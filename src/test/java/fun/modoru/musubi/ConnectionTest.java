@@ -14,15 +14,15 @@ import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ConnectionTest {
 
     @SuppressWarnings("deprecation")
     @Test
     public void test() throws Throwable {
-        Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
         Protocol serverProtocol = Protocol.server((_, _, _) -> true).build();
         Protocol clientProtocol = Protocol.client().build();
@@ -60,12 +60,13 @@ public class ConnectionTest {
                 new QuicClientSocket(
                         QuicSslContextBuilder.forClient()
                                 .trustManager(ca.getCertificate())
-                                .applicationProtocols(QuicClientSocket.PROTOCOL_NAME)
+                                .applicationProtocols(QuicClientSocket  .PROTOCOL_NAME)
                                 .endpointIdentificationAlgorithm(null)
                                 .build(),
                         new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor),
                         new InetSocketAddress("127.0.0.1", 4242)
                 ),
+                executor,
                 "client",
                 null
         );

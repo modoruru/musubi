@@ -1,6 +1,9 @@
 package fun.modoru.musubi;
 
-import fun.modoru.musubi.packet.*;
+import fun.modoru.musubi.packet.Direction;
+import fun.modoru.musubi.packet.PacketDefinition;
+import fun.modoru.musubi.packet.PacketHandler;
+import fun.modoru.musubi.packet.PacketProcessingException;
 import fun.modoru.musubi.packets.*;
 import fun.modoru.musubi.peer.MusubiConnection;
 import fun.modoru.musubi.server.ServerAuthorizationHandler;
@@ -46,7 +49,9 @@ public final class Protocol {
                 AuthorizationPacket.DEFINITION,
                 AuthorizationResultPacket.DEFINITION,
                 ProtocolVersionPacket.DEFINITION,
-                ProtocolVersionSuccessPacket.DEFINITION
+                ProtocolVersionSuccessPacket.DEFINITION,
+                KeepAlivePacket.CLIENT_DEFINITION,
+                KeepAlivePacket.SERVER_DEFINITION
         );
 
         for (int i = 0; i < definitionsAndHandlers.size(); i++) {

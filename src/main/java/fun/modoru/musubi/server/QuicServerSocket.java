@@ -11,6 +11,7 @@ import io.netty.handler.codec.quic.QuicStreamChannel;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class QuicServerSocket {
@@ -44,7 +45,8 @@ public class QuicServerSocket {
                                     .initialMaxData(10000000)
                                     .initialMaxStreamDataBidirectionalLocal(1000000)
                                     .initialMaxStreamDataBidirectionalRemote(1000000)
-                                    .initialMaxStreamsBidirectional(100)
+                                    .initialMaxStreamsBidirectional(1)
+                                    .maxIdleTimeout(10, TimeUnit.SECONDS)
                                     .streamHandler(new ChannelInitializer<QuicStreamChannel>() {
                                         @Override
                                         protected void initChannel(QuicStreamChannel ch) {

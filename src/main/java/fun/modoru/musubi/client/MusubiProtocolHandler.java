@@ -31,12 +31,7 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        try {
-            startAuthorization(musubiClient.identifier, musubiClient.authorization);
-        }
-        catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
+        startAuthorization(musubiClient.identifier, musubiClient.authorization);
         super.channelActive(ctx);
     }
 
@@ -48,6 +43,14 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         if(readPacket.packetInstance() instanceof ConnectionClosurePacket connectionClosurePacket) {
             musubiClient.finish(CloseReason.gracefulClosure(connectionClosurePacket));
             connection.close();
+            return;
+        }
+
+        if (readPacket.packetInstance() instanceof KeepAlivePacket(long timestamp)) {
+            if (timestamp == musubiClient.pendingKeepAliveTimestamp) {
+                musubiClient.pendingKeepAliveSince = 0;
+                musubiClient.pendingKeepAliveTimestamp = 0;
+            }
             return;
         }
 

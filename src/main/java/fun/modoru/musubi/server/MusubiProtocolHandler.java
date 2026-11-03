@@ -18,10 +18,11 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
 
     private @Nullable String closureReason;
 
+    private long lastKeepAlive = 0;
+
     public MusubiProtocolHandler(MusubiServer musubiServer) {
         this.musubiServer = musubiServer;
     }
-
     private void close(String reason) {
         connection.send(ConnectionClosurePacket.CLIENT_DEFINITION, new ConnectionClosurePacket(reason));
         connection.close();
@@ -41,6 +42,18 @@ public class MusubiProtocolHandler extends SimpleChannelInboundHandler<ByteBuf> 
         if(readPacket.packetInstance() instanceof ConnectionClosurePacket connectionClosurePacket) {
             closureReason = connectionClosurePacket.reason();
             connection.close();
+            return;
+        }
+
+        if(readPacket.packetInstance() instanceof KeepAlivePacket packet) {
+            if(packet.timestamp() < lastKeepAlive) {
+                closureReason = "Client sent out-of-order KeepAlivePacket.";
+                connection.close();
+                return;
+            }
+
+            lastKeepAlive = packet.timestamp();
+            connection.send(KeepAlivePacket.CLIENT_DEFINITION, packet);
             return;
         }
 
