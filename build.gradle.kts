@@ -65,6 +65,16 @@ extensions.configure<PublishingExtension> {
                 password = System.getenv("MODORU_TOKEN") ?: ""
             }
         }
+
+        maven {
+            name = "modoruReleases"
+            url = uri("https://repository.modoru.fun/releases")
+
+            credentials {
+                username = System.getenv("MODORU_USERNAME") ?: ""
+                password = System.getenv("MODORU_TOKEN") ?: ""
+            }
+        }
     }
 
     publications {
@@ -74,7 +84,7 @@ extensions.configure<PublishingExtension> {
 
             group = "fun.modoru"
             artifactId = "musubi"
-            version = System.getenv("COMMIT")
+            version = System.getenv("PUBLISH_VERSION")
         }
     }
 }
