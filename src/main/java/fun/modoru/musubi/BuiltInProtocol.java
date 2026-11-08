@@ -32,6 +32,9 @@ public final class BuiltInProtocol {
             EditGroupPacket.DEFINITION,
             RequestGroupPacket.DEFINITION,
             CreateDiscordLinkCodePacket.DEFINITION,
+            AddPunishmentPacket.DEFINITION,
+            RemovePunishmentPacket.DEFINITION,
+            RequestUserPunishmentsPacket.DEFINITION,
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
@@ -43,7 +46,8 @@ public final class BuiltInProtocol {
             fun.modoru.musubi.builtin.packets.client.TransferPrivatePlayerMessageResponsePacket.DEFINITION,
             ConfirmationPacket.DEFINITION,
             GroupPacket.DEFINITION,
-            TrackingUpdateGroupPacket.DEFINITION
+            TrackingUpdateGroupPacket.DEFINITION,
+            UserPunishmentsPacket.DEFINITION
     );
 
     private BuiltInProtocol() {}

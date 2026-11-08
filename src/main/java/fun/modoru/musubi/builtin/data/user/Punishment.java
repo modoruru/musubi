@@ -2,6 +2,7 @@ package fun.modoru.musubi.builtin.data.user;
 
 import fun.modoru.musubi.builtin.data.misc.Length;
 import fun.modoru.musubi.data.Codec;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.util.DataUtil;
 import io.netty.buffer.ByteBuf;
@@ -24,6 +25,12 @@ public record Punishment(long creationTime, Length length, @Nullable String reas
 
     public boolean active() {
         return length.isInfinite() || System.currentTimeMillis() <= creationTime + length.length();
+    }
+
+    public enum Type {
+        MUTE, BAN;
+
+        public static final Codec<Type> CODEC = Codecs.enumCodec(Type.class);
     }
 
 }

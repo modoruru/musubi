@@ -33,6 +33,29 @@ public final class Codecs {
         );
     }
 
+    public static <K, V> Codec<Map<K, V>> mapCodec(Codec<K> keyCodec, Codec<V> valueCodec) {
+        return new FixedCodec<>(
+                input -> {
+                    int size = DataUtil.readVarInt(input);
+                    Map<K, V> result = new HashMap<>(size);
+                    for (int i = 0; i < size; i++) {
+                        result.put(keyCodec.read(input), valueCodec.read(input));
+                    }
+                    return result;
+                },
+                (output, element) -> {
+                    DataUtil.writeVarInt(output, element.size());
+
+                    for (Map.Entry<K, V> entry : element.entrySet()) {
+                        output = keyCodec.write(output, entry.getKey());
+                        output = valueCodec.write(output, entry.getValue());
+                    }
+
+                    return output;
+                }
+        );
+    }
+
     public static <E> Codec<Set<E>> setCodec(Codec<E> elementCodec) {
         return new FixedCodec<>(
                 input -> DataUtil.readCollection(input, HashSet::new, Set::add, elementCodec),

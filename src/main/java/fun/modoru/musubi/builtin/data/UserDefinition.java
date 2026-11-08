@@ -2,7 +2,10 @@ package fun.modoru.musubi.builtin.data;
 
 import fun.modoru.musubi.builtin.data.misc.ChatChannel;
 import fun.modoru.musubi.builtin.data.server.GroupInvite;
-import fun.modoru.musubi.builtin.data.user.*;
+import fun.modoru.musubi.builtin.data.user.NameColor;
+import fun.modoru.musubi.builtin.data.user.Particle;
+import fun.modoru.musubi.builtin.data.user.Subscription;
+import fun.modoru.musubi.builtin.data.user.TeamRole;
 import fun.modoru.musubi.data.Codec;
 import fun.modoru.musubi.data.Codecs;
 import org.jspecify.annotations.Nullable;
@@ -30,10 +33,6 @@ public final class UserDefinition {
     public static final UserProperty<Subscription> subscription = define(Subscription.CODEC);
     public static final UserProperty<TeamRole> teamRole = define(TeamRole.CODEC);
 
-    public static final UserProperty<Punishment>
-            ban = define(Punishment.CODEC),
-            mute = define(Punishment.CODEC);
-
     public static final UserProperty<UUID> groupUuid = define(Codecs.UUID);
 
     public static final UserProperty<List<NameColor.AcquiredNameColor>> acquiredNameColors = define(Codecs.listCodec(NameColor.AcquiredNameColor.CODEC));
@@ -52,6 +51,8 @@ public final class UserDefinition {
 
     // Active incoming invites
     public static final UserProperty<List<GroupInvite>> activeGroupInvites = define(Codecs.listCodec(GroupInvite.CODEC));
+
+    public static final UserProperty<List<UUID>> ignoredUsers = define(Codecs.listCodec(Codecs.UUID));
 
     private UserDefinition() {}
 
