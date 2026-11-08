@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf;
 
 public record Theme(int accentColor, int warningsColor, int errorsColor) {
 
-    public static final Theme DEFAULT = new Theme(0x69a2ff, 0xffd45e, 0xff5555);
+    public static final Theme DEFAULT = new Theme(0x50f26e, 0xffd45e, 0xff5555);
 
     public static final Codec<Theme> CODEC = new FixedCodec<>(
             input -> new Theme(input.readInt(), input.readInt(), input.readInt()),
