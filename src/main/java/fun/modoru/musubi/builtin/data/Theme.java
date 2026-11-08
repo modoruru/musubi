@@ -5,7 +5,7 @@ import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.util.DataUtil;
 import io.netty.buffer.ByteBuf;
 
-public record Theme(int accentColor, int warningsColor, int errorsColor) {
+public record Theme(int accentColor, int importantColor, int errorsColor) {
 
     public static final Theme DEFAULT = new Theme(0x50f26e, 0xffd45e, 0xff5555);
 
@@ -14,7 +14,7 @@ public record Theme(int accentColor, int warningsColor, int errorsColor) {
             (output, element) -> DataUtil.writeSequentially(
                     output,
                     ByteBuf::writeInt, ByteBuf::writeInt, ByteBuf::writeInt,
-                    element.accentColor, element.warningsColor, element.errorsColor
+                    element.accentColor, element.importantColor, element.errorsColor
             )
     );
 
