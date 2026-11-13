@@ -6,18 +6,17 @@ import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.util.DataUtil;
 import io.netty.buffer.ByteBuf;
-import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-public record Punishment(long creationTime, Length length, @Nullable String reason, @Nullable UUID moderatorUuid) {
+public record Punishment(long creationTime, Length length, String reason, UUID moderatorUuid) {
 
     public static final Codec<Punishment> CODEC = new FixedCodec<>(
-            input -> new Punishment(input.readLong(), Length.CODEC.read(input), DataUtil.readNullable(input, DataUtil::readUtf8), DataUtil.readNullable(input, DataUtil::readUuid)),
+            input -> new Punishment(input.readLong(), Length.CODEC.read(input), DataUtil.readUtf8(input), DataUtil.readUuid(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
                     ByteBuf::writeLong, Length.CODEC,
-                    DataUtil.nullableWriter(DataUtil::writeUtf8), DataUtil.nullableWriter(DataUtil::writeUuid),
+                    DataUtil::writeUtf8, DataUtil::writeUuid,
                     element.creationTime, element.length,
                     element.reason, element.moderatorUuid
             )
