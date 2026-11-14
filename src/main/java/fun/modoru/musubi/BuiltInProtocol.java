@@ -35,6 +35,7 @@ public final class BuiltInProtocol {
             AddPunishmentPacket.DEFINITION,
             RemovePunishmentPacket.DEFINITION,
             RequestUserPunishmentsPacket.DEFINITION,
+            AllowJoinRequestPacket.DEFINITION,
 
             UserDataPacket.DEFINITION,
             TrackingUpdatePropertyPacket.DEFINITION,
@@ -47,7 +48,8 @@ public final class BuiltInProtocol {
             ConfirmationPacket.DEFINITION,
             GroupPacket.DEFINITION,
             TrackingUpdateGroupPacket.DEFINITION,
-            UserPunishmentsPacket.DEFINITION
+            UserPunishmentsPacket.DEFINITION,
+            AllowJoinPacket.DEFINITION
     );
 
     private BuiltInProtocol() {}

@@ -2,6 +2,7 @@ package fun.modoru.musubi.builtin.packets.client;
 
 import fun.modoru.musubi.builtin.data.misc.ChatChannel;
 import fun.modoru.musubi.builtin.data.user.Identifier;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -24,8 +25,8 @@ public record BroadcastPlayerMessagePacket(
             (output, element) -> DataUtil.writeSequentially(
                     output,
                     Identifier.CODEC, UserDataPacket.USER_PROPERTIES_VALUES_CODEC,
-                    DataUtil::writeUtf8, ByteBuf::writeLong,
-                    ChatChannel.CODEC, DataUtil::writeUtf8,
+                    Codecs.UTF_8, ByteBuf::writeLong,
+                    ChatChannel.CODEC, Codecs.UTF_8,
                     element.senderIdentifier, element.senderPropertiesValues,
                     element.originalClientName, element.timeSent,
                     element.chatChannel, element.message

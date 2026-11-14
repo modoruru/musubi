@@ -20,7 +20,7 @@ public record UserPunishmentsPacket(UUID uuid, Map<Punishment.Type, Punishment> 
             input -> new UserPunishmentsPacket(DataUtil.readUuid(input), PUNISHMENTS_CODEC.read(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, PUNISHMENTS_CODEC,
+                    Codecs.UUID, PUNISHMENTS_CODEC,
                     element.uuid, element.punishments
             )
     );

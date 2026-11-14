@@ -1,5 +1,6 @@
 package fun.modoru.musubi.builtin.packets.server;
 
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -15,7 +16,7 @@ public record PlayerOnlineStatusPacket(UUID uuid, boolean online) {
             input -> new PlayerOnlineStatusPacket(DataUtil.readUuid(input), input.readBoolean()),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, ByteBuf::writeBoolean,
+                    Codecs.UUID, ByteBuf::writeBoolean,
                     element.uuid, element.online
             )
     );

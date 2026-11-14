@@ -1,6 +1,7 @@
 package fun.modoru.musubi.builtin.packets.server;
 
 import fun.modoru.musubi.builtin.data.server.Warning;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -15,7 +16,7 @@ public record AddUserWarningPacket(UUID uuid, Warning warning) {
             input -> new AddUserWarningPacket(DataUtil.readUuid(input), Warning.CODEC.read(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, Warning.CODEC,
+                    Codecs.UUID, Warning.CODEC,
                     element.uuid, element.warning
             )
     );

@@ -3,6 +3,7 @@ package fun.modoru.musubi.builtin.packets.server;
 import fun.modoru.musubi.builtin.data.server.Group;
 import fun.modoru.musubi.builtin.packets.WaitingPacket;
 import fun.modoru.musubi.data.Codec;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.data.FixedCodec;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
@@ -22,8 +23,7 @@ public record EditGroupPacket(UUID waitingUuid, GroupPatch groupPatch) implement
             input -> new EditGroupPacket(DataUtil.readUuid(input), GroupPatch.CODEC.read(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid,
-                    GroupPatch.CODEC,
+                    Codecs.UUID, GroupPatch.CODEC,
                     element.waitingUuid, element.groupPatch
             )
     );

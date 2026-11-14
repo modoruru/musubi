@@ -1,6 +1,7 @@
 package fun.modoru.musubi.builtin.packets.server;
 
 import fun.modoru.musubi.builtin.packets.RequestPacket;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -16,8 +17,8 @@ public record TransferPrivatePlayerMessageRequestPacket(UUID requestUuid, long c
             input -> new TransferPrivatePlayerMessageRequestPacket(DataUtil.readUuid(input), input.readLong(), DataUtil.readUuid(input), DataUtil.readUtf8(input), DataUtil.readUtf8(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, ByteBuf::writeLong,
-                    DataUtil::writeUuid, DataUtil::writeUtf8, DataUtil::writeUtf8,
+                    Codecs.UUID, ByteBuf::writeLong,
+                    Codecs.UUID, Codecs.UTF_8, Codecs.UTF_8,
                     element.requestUuid, element.creationTime,
                     element.senderUuid, element.message, element.receiverGameName
             )

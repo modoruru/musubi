@@ -1,6 +1,7 @@
 package fun.modoru.musubi.builtin.packets.server;
 
 import fun.modoru.musubi.builtin.data.misc.ChatChannel;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -16,7 +17,7 @@ public record BroadcastPlayerMessagePacket(UUID senderUuid, long timeSent, ChatC
             input -> new BroadcastPlayerMessagePacket(DataUtil.readUuid(input), input.readLong(), ChatChannel.CODEC.read(input), DataUtil.readUtf8(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, ByteBuf::writeLong, ChatChannel.CODEC, DataUtil::writeUtf8,
+                    Codecs.UUID, ByteBuf::writeLong, ChatChannel.CODEC, Codecs.UTF_8,
                     element.senderUuid, element.timeSent, element.chatChannel, element.message
             )
     );

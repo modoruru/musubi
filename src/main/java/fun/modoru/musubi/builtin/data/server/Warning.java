@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-public record Warning(long creationTime, Severity severity, Source source, String reason, @Nullable String messageContent, @Nullable UUID moderatorUuid) {
+public record Warning(long creationTime, Severity severity, Source source, String reason, @Nullable String messageContent, UUID moderatorUuid) {
 
     public static final Codec<Warning> CODEC = new FixedCodec<>(
             input -> new Warning(
@@ -17,7 +17,7 @@ public record Warning(long creationTime, Severity severity, Source source, Strin
                     DataUtil.readEnum(input, Source.class),
                     DataUtil.readUtf8(input),
                     DataUtil.readNullable(input, DataUtil::readUtf8),
-                    DataUtil.readNullable(input, DataUtil::readUuid)
+                    DataUtil.readUuid(input)
             ),
             (output, element) -> DataUtil.writeSequentially(
                     output,
@@ -26,7 +26,7 @@ public record Warning(long creationTime, Severity severity, Source source, Strin
                     DataUtil.enumWriter(),
                     DataUtil::writeUtf8,
                     DataUtil.nullableWriter(DataUtil::writeUtf8),
-                    DataUtil.nullableWriter(DataUtil::writeUuid),
+                    DataUtil::writeUuid,
                     element.creationTime, element.severity, element.source, element.reason, element.messageContent, element.moderatorUuid
             )
     );

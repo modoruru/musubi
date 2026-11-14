@@ -1,6 +1,7 @@
 package fun.modoru.musubi.builtin.packets.server;
 
 import fun.modoru.musubi.builtin.packets.RequestPacket;
+import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
@@ -15,7 +16,7 @@ public record CreateGroupRequestPacket(UUID requestUuid, UUID ownerUuid, String 
             input -> new CreateGroupRequestPacket(DataUtil.readUuid(input), DataUtil.readUuid(input), DataUtil.readUtf8(input)),
             (output, element) -> DataUtil.writeSequentially(
                     output,
-                    DataUtil::writeUuid, DataUtil::writeUuid, DataUtil::writeUtf8,
+                    Codecs.UUID, Codecs.UUID, Codecs.UTF_8,
                     element.requestUuid, element.ownerUuid, element.name
             )
     );
