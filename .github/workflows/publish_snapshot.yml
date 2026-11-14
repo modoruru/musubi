@@ -32,4 +32,4 @@ jobs:
           MODORU_TOKEN: ${{ secrets.MODORU_TOKEN }}
           PUBLISH_VERSION: ${{ github.sha }}
         run: |
-          COMMIT="${COMMIT:0:7}" ./gradlew publishMavenPublicationToModoruSnapshotsRepository
+          PUBLISH_VERSION="${PUBLISH_VERSION:0:7}" ./gradlew publishMavenPublicationToModoruSnapshotsRepository
