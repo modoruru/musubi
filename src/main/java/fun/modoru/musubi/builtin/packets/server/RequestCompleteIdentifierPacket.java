@@ -5,12 +5,11 @@ import fun.modoru.musubi.data.Codecs;
 import fun.modoru.musubi.packet.Direction;
 import fun.modoru.musubi.packet.PacketDefinition;
 import fun.modoru.musubi.util.DataUtil;
-import io.netty.buffer.ByteBuf;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-public record RequestCompleteIdentifierPacket(UUID requestUuid, @Nullable UUID uuid, @Nullable UUID gameUuid, @Nullable String gameName, @Nullable Long discordId) implements RequestPacket {
+public record RequestCompleteIdentifierPacket(UUID requestUuid, @Nullable UUID uuid, @Nullable UUID gameUuid, @Nullable String gameName) implements RequestPacket {
 
     public static final PacketDefinition<RequestCompleteIdentifierPacket> DEFINITION = new PacketDefinition<>(
             Direction.SERVER,
@@ -19,17 +18,16 @@ public record RequestCompleteIdentifierPacket(UUID requestUuid, @Nullable UUID u
                     DataUtil.readUuid(input),
                     DataUtil.readNullable(input, DataUtil::readUuid),
                     DataUtil.readNullable(input, DataUtil::readUuid),
-                    DataUtil.readNullable(input, DataUtil::readUtf8),
-                    DataUtil.readNullable(input, ByteBuf::readLong)
+                    DataUtil.readNullable(input, DataUtil::readUtf8)
             ),
             (output, element) -> {
-                var uuidWriter = DataUtil.nullableWriter(DataUtil::writeUuid);
+                var uuidWriter = DataUtil.nullableWriter(Codecs.UUID);
                 return DataUtil.writeSequentially(
                         output,
                         Codecs.UUID, uuidWriter, uuidWriter,
-                        DataUtil.nullableWriter(DataUtil::writeUtf8), DataUtil.nullableWriter(ByteBuf::writeLong),
+                        DataUtil.nullableWriter(DataUtil::writeUtf8),
                         element.requestUuid, element.uuid, element.gameUuid,
-                        element.gameName, element.discordId
+                        element.gameName
                 );
             }
     );
